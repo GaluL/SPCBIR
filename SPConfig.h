@@ -3,11 +3,18 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include "SPLogger.h"
 
+#define MAX_LINE_LENGTH 1024
+#define SIZE_OF_PCAYML 7
+#define SIZE_OF_STDOUT 6
+#define NUM_OF_CONFIG_VARIABLES 14
 /**
  * A data-structure which is used for configuring the system.
  */
+
 
 typedef enum sp_config_msg_t {
 	SP_CONFIG_MISSING_DIR,
@@ -22,6 +29,12 @@ typedef enum sp_config_msg_t {
 	SP_CONFIG_INDEX_OUT_OF_RANGE,
 	SP_CONFIG_SUCCESS
 } SP_CONFIG_MSG;
+typedef enum sp_KDTree_split_method_t
+{
+	RANDOM,
+	MAX_SPREAD,
+	INCREMENTAL
+} SP_KDTREE_SPLIT_METHOD;
 
 typedef struct sp_config_t* SPConfig;
 
@@ -49,6 +62,7 @@ typedef struct sp_config_t* SPConfig;
  *
  *
  */
+
 SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg);
 
 /*

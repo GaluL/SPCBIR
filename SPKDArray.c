@@ -57,7 +57,7 @@ void sortPointIndexesByDim(SPPoint* points, int pointsCount,int** indexesMat , i
 	free(dimCoords);
 }
 
-SPKDArray Init(SPPoint* arr, int size)
+SPKDArray spKDArrayInit(SPPoint* arr, int size)
 {
 	SPKDArray kdArray = NULL;
 	int i = 0;
@@ -184,7 +184,7 @@ void fillMatFromParent(SPKDArray kdLeft, SPKDArray kdRight, SPKDArray kdParent,
 	}
 }
 
-SPKDSplittedArray Split(SPKDArray kdArr, int axis)
+SPKDSplittedArray spKDArraySplit(SPKDArray kdArr, int axis)
 {
 	SPKDSplittedArray result = NULL;
 	SPKDArray kdLeft = NULL;
@@ -255,17 +255,6 @@ SPKDSplittedArray Split(SPKDArray kdArr, int axis)
 		pointIndex = kdArr->dimsSortedIndexesMat[axis][i];
 
 		indexMapToSide[pointIndex] = (i < kdLeft->size) ? 0 : 1;
-		/*if (i < kdLeft->size)
-		{
-			kdLeft->points[i] = spPointCopy(kdArr->points[pointIndex]);
-			indexMapLeft[pointIndex] = i;
-		}
-		else
-		{
-
-			kdRight->points[i - kdLeft->size] = spPointCopy(kdArr->points[pointIndex]);
-			indexMapRight[pointIndex] = i - kdLeft->size;
-		}*/
 	}
 
 	for (i = 0; i < kdArr->size; ++i)

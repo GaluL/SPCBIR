@@ -15,8 +15,8 @@ typedef struct sp_kdarray_t *SPKDArray;
 
 typedef struct sp_kdsplittedarray_t *SPKDSplittedArray;
 
-SPKDArray Init(SPPoint* arr, int size);
+SPKDArray spKDArrayInit(SPPoint* arr, int size);
 
-SPKDSplittedArray Split(SPKDArray kdArr, int axis);
+SPKDSplittedArray spKDArraySplit(SPKDArray kdArr, int axis);
 
 #endif /* SPKDARRAY_H_ */

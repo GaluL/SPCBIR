@@ -34,6 +34,6 @@ int main(int argc, char** argv)
 	pointsArr[4] = spPointCreate(coords4, 2, 4);
 
 	fflush(NULL);
-	SPKDArray test =  Init(pointsArr, 5);
-	SPKDSplittedArray test1 = Split(test, 0);
+	SPKDArray test =  spKDArrayInit(pointsArr, 5);
+	SPKDSplittedArray test1 = spKDArraySplit(test, 0);
 }
