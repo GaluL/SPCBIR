@@ -8,7 +8,6 @@
 #include <stddef.h>
 #include <assert.h>
 #include "SPKDArray.h"
-#include "SPHelperMethods.h"
 
 #define MAP_NOT_EXIST -1
 
