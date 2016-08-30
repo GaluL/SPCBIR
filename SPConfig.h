@@ -11,6 +11,52 @@
 #define SIZE_OF_PCAYML 7
 #define SIZE_OF_STDOUT 6
 #define NUM_OF_CONFIG_VARIABLES 14
+#define PCA_DIMENSION_DEFULT 20
+#define NUM_OF_FEATURES_DEFULT 100
+#define NUM_OF_SIMILAR_IMAGES_DEFULT 1
+#define KNN_DEFULT 1
+#define LOGGER_LEVEL_DEFULT 3
+#define SP_PCA_DIMENSION_CONSTRAINT_LOW 9
+#define SP_PCA_DIMENSION_CONSTRAINT_HIGH 29
+#define NUM_OF_ERROR_IN_ARRAY 4
+#define SIZE_OF_SKIP 4
+#define SIZE_OF_SKIP_SKIP_EMPTY_LINE 15
+
+#define PCA_FILE_NAME_DEFULT "pca.yml"
+#define LOGGER_FILE_NAME_DEFULT "stdout"
+#define COMMENT_MARK '#'
+#define EQUAL_MARK '='
+#define SP_IMAGES_DIRECTORY "spImagesDirectory"
+#define SP_IMAGES_PREFIX "spImagesPrefix"
+#define SP_IMAGES_SUFFIX "spImagesSuffix"
+#define SP_NUM_OF_IMAGES "spNumOfImages"
+#define SP_PCA_DIMENSION "spPCADimension"
+#define SP_PCA_FILE_NAME "spPCAFilename"
+#define SP_NUM_OF_FEATURES "spNumOfFeatures"
+#define SP_EXTRACTION_MODE "spExtractionMode"
+#define SP_NUM_OF_SIMILAR_IMAGES "spNumOfSimilarImages"
+#define SP_KD_TREE_SPLIT_METHOD "spKDTreeSplitMethod"
+#define SP_KNN "spKNN"
+#define SP_MINMIMAL_GUI "spMinimalGUI"
+#define SP_LOGGER_LEVEL "spLoggerLevel"
+#define SP_LOGGER_FILE_NAME "spLoggerFilename"
+#define ERROR_INVALID_CONFIGURATION_LINE "Invalid configuration line"
+#define ERROR_INVALID_VALUE "Invalid value - constraint not met"
+#define ERROR_PARAMTER "Parameter"
+#define ERROR_IS_NOT_SET "is not set"
+#define ERROR_FILE "File:"
+#define ERROR_LINE "Line:"
+#define ERROR_MASSAGE "Massage:"
+#define ERROR_THE_CONFIGURATION_FILE "The configuration file"
+#define ERROR_COULD_NOT_OPEN "couldn’t be open"
+#define DUMMY "temp"
+#define SKIP "skip"
+#define SKIP_EMPTY_LINE "skip empty line"
+#define SUFFIX_JPEG ".jpeg"
+#define SUFFIX_PNG ".png"
+#define SUFFIX_BMP ".bmp"
+#define SUFFIX_GIF ".gif"
+
 /**
  * A data-structure which is used for configuring the system.
  */
