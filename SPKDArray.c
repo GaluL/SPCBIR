@@ -296,3 +296,43 @@ SPKDSplittedArray spKDArraySplit(SPKDArray kdArr, int axis)
 
 	return result;
 }
+
+int spKDArrayGetSize(SPKDArray kdArr)
+{
+	if (kdArr == NULL)
+	{
+		return NULL;
+	}
+
+	return kdArr->size;
+}
+
+SPPoint spKDArrayGetPoint(SPKDArray kdArr, int index)
+{
+	if (kdArr == NULL || index >= kdArr->size)
+	{
+		return NULL;
+	}
+
+	return kdArr->points[index];
+}
+
+SPKDArray spKDSplittedArrayGetRight(SPKDSplittedArray kdSplittedArray)
+{
+	if (!kdSplittedArray)
+	{
+		return NULL;
+	}
+
+	return kdSplittedArray->kdRight;
+}
+
+SPKDArray spKDSplittedArrayGetLeft(SPKDSplittedArray kdSplittedArray)
+{
+	if (!kdSplittedArray)
+	{
+		return NULL;
+	}
+
+	return kdSplittedArray->kdLeft;
+}

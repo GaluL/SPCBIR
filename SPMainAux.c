@@ -39,14 +39,27 @@ bool spSerializeImagesFeatures(SPImage* imagesFeatures, SPConfig config)
 {
 	int i = 0;
 	int numOfImages = 0;
-	char* imgPath = NULL;
-	char* imgPrefix = NULL;
-	char* imagePath = (char*)malloc((MAX_FILE_PATH_LEN + 1) * sizeof(char));
+	char* imagesPath = NULL;
+	SP_CONFIG_MSG configMsg;
+	char* imageFeatsPath = (char*)malloc((MAX_FILE_PATH_LEN + 1) * sizeof(char));
+	if (!imagesPath)
+	{
+		//TODO: handle
+		return false;
+	}
 
-	/*numOfImages = spConfigGetImagePath(c);
+	//TODO: check config msg
+	numOfImages = spConfigGetNumOfImages(config, &configMsg);
 
 	for (i = 0; i < numOfImages; ++i)
 	{
-		spImageSaveToFeats(imagesFeatures[i], );
-	}*/
+		//TODO: check config msg
+		configMsg = spConfigGetImageFeatsPath(imageFeatsPath, config, i);
+		if (!spImageSaveToFeats(imagesFeatures[i], imageFeatsPath))
+		{
+			return false;
+		}
+	}
+
+	return true;
 }

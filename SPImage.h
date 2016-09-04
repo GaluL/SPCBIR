@@ -14,7 +14,7 @@
 typedef struct sp_image_t *SPImage;
 
 SPImage spImageCreateFromImg(SPPoint* feats, int featsCount);
-//SPImage spImageCreateFromFeats(const char* featsFileName);
+SPImage spImageCreateFromFeats(const char* featsFileName);
 bool spImageSaveToFeats(SPImage image, const char* featsFileName);
 void spImageDestroy(SPImage);
 

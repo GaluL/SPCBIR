@@ -52,15 +52,48 @@ SPImage* extractImagesFeatures(const SPConfig config, sp::ImageProc imgProc, int
 	return imagesFeatures;
 }
 
+void UnitTest()
+{
+	srand(0);
+	SPPoint* pointsArr = (SPPoint*)malloc(5 * sizeof(SPPoint));
+	SPImage image;
+
+	double coords0[2] = {1, 2};
+	pointsArr[0] = spPointCreate(coords0, 2, 0);
+
+	double coords1[2] = {123, 70};
+	pointsArr[1] = spPointCreate(coords1, 2, 1);
+
+	double coords2[2] = {2, 7};
+	pointsArr[2] = spPointCreate(coords2, 2, 2);
+
+	double coords3[2] = {9, 11};
+	pointsArr[3] = spPointCreate(coords3, 2, 3);
+
+	double coords4[2] = {3, 4};
+	pointsArr[4] = spPointCreate(coords4, 2, 4);
+
+	image = spImageCreateFromImg(pointsArr, 5);
+	spImageSaveToFeats(image, "testImage.feat");
+	image = spImageCreateFromFeats("testImage.feat");
+
+	if (image)
+	{
+		return;
+	}
+}
+
 int main(int argc, char** argv)
 {
 	SPConfig config = NULL;
 	SP_CONFIG_MSG configMsg;
-	char* configFileName = spGetConfigFileName(argc, argv);
-	sp::ImageProc imgProc = NULL;
+	char* configFileName = NULL/*spGetConfigFileName(argc, argv)*/;
+	sp::ImageProc* imgProc = NULL;
 	int numOfImages = 0;
 	SPImage* imagesFeatures = NULL;
 	SPLogger logger = NULL;
+
+	UnitTest();
 
 	if (!configFileName)
 	{
@@ -68,16 +101,16 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
-	config = spConfigCreate(configFileName, &configMsg);
+	//config = spConfigCreate(configFileName, &configMsg);
 	if (config)
 	{
 		//TODO: wait for ofek's implementation
 		//logger = spLoggerCreate(, )
-		imgProc = sp::ImageProc(config);
+		//imgProc = new sp::ImageProc(config);
 		// TODO: handle failures
 		numOfImages = spConfigGetNumOfImages(config, &configMsg);
 
-		imagesFeatures = extractImagesFeatures(config, imgProc, numOfImages);
+		//imagesFeatures = extractImagesFeatures(config, imgProc, numOfImages);
 		if (!imagesFeatures)
 		{
 			//TODO: handle

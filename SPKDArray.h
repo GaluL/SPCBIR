@@ -19,4 +19,12 @@ SPKDArray spKDArrayInit(SPPoint* arr, int size);
 
 SPKDSplittedArray spKDArraySplit(SPKDArray kdArr, int axis);
 
+int spKDArrayGetSize(SPKDArray kdArr);
+
+SPPoint spKDArrayGetPoint(SPKDArray kdArr, int index);
+
+SPKDArray spKDSplittedArrayGetRight(SPKDSplittedArray kdSplittedArray);
+
+SPKDArray spKDSplittedArrayGetLeft(SPKDSplittedArray kdSplittedArray);
+
 #endif /* SPKDARRAY_H_ */
