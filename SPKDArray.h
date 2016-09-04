@@ -10,6 +10,8 @@
 
 #include "SPPoint.h"
 
+#define INVALID_VALUE -1
+
 /** Type for defining the kdarray */
 typedef struct sp_kdarray_t *SPKDArray;
 
@@ -23,10 +25,12 @@ int spKDArrayGetSize(SPKDArray kdArr);
 
 SPPoint spKDArrayGetPoint(SPKDArray kdArr, int index);
 
+double spKDArrayGetSplitMedian(SPKDArray kdArray, int dimension);
+
+int spKDSArrayGetMaxSpreadDimension(SPKDArray kdArray);
+
 SPKDArray spKDSplittedArrayGetRight(SPKDSplittedArray kdSplittedArray);
 
 SPKDArray spKDSplittedArrayGetLeft(SPKDSplittedArray kdSplittedArray);
-
-double spKDArrayGetSplitMedian(SPKDArray kdArray, int dimension);
 
 #endif /* SPKDARRAY_H_ */

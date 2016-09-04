@@ -343,3 +343,31 @@ double spKDArrayGetSplitMedian(SPKDArray kdArray, int dimension)
 	      kdArray->dimsSortedIndexesMat[dimension][(int)ceil(kdArray->size / 2.0) - 1]],
 			dimension);
 }
+
+int spKDSArrayGetMaxSpreadDimension(SPKDArray kdArray)
+{
+	int i = 0;
+	int j = 0;
+	int maxSpreadDim = INVALID_VALUE;
+	double maxSpread = 0;
+	double currDimSpread = 0;
+
+	if (!kdArray || !kdArray->points || !kdArray->dimsSortedIndexesMat || kdArray->size == 0)
+	{
+		return INVALID_VALUE;
+	}
+
+	for (i = 0; i < spPointGetDimension(kdArray->points[0]); ++i)
+	{
+		currDimSpread = kdArray->dimsSortedIndexesMat[i][kdArray->size] -
+				kdArray->dimsSortedIndexesMat[i][0];
+
+		if (currDimSpread > maxSpread)
+		{
+			maxSpread = currDimSpread;
+			maxSpreadDim = i;
+		}
+	}
+
+	return maxSpreadDim;
+}

@@ -15,6 +15,7 @@ extern "C"
 #include "SPImage.h"
 #include "SPMainAux.h"
 #include "SPConfig.h"
+#include "SPKDTreeNode.h"
 }
 
 SPImage* extractImagesFeatures(const SPConfig config, sp::ImageProc* imgProc, int numOfImages)
@@ -130,6 +131,7 @@ int main(int argc, char** argv)
 			}
 		}
 
+		SPKDTreeNode tree = spCreateKDTreeFromImages(imagesFeatures, config);
 	}
 
 	return 0;

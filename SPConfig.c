@@ -541,9 +541,9 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 		succeeded = spAssignArgument(config, variable_name, variable_value, msg, line_counter, filename);
 		if (succeeded == 1)
 		{
-		free(variable_name);
-		free(variable_value);
-		line_counter++;
+			//free(variable_name);
+			//free(variable_value);
+			line_counter++;
 		}
 		else if (succeeded == 0)
 		{
@@ -554,10 +554,10 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 		}
 		else if (succeeded == 3)
 		{
-		free(variable_name);
-		free(variable_value);
-		fclose(file);
-		return NULL;
+			free(variable_name);
+			free(variable_value);
+			fclose(file);
+			return NULL;
 		}
 	}
 	// check all must initiate variables were initiate

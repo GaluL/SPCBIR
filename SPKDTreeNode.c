@@ -5,14 +5,14 @@
  *      Author: galkl
  */
 #include <stdlib.h>
+#include <time.h>
+#include <math.h>
 #include "SPKDTreeNode.h"
 #include "SPKDArray.h"
 #include "SPPoint.h"
 #include "SPBPriorityQueue.h"
 #include "SPConfig.h"
 #include "SPImage.h"
-
-#define INVALID_VALUE -1
 
 struct sp_kdtreenode_t {
 	int Dim;
@@ -22,35 +22,45 @@ struct sp_kdtreenode_t {
 	SPPoint Data;
 };
 
-int getSplitDimension(SPConfig config, int upperLevelSplitDim)
+int getSplitDimension(SPConfig config, SPKDArray kdArr, int upperLevelSplitDim)
 {
 	SP_CONFIG_MSG configMsg;
 	SP_KDTREE_SPLIT_METHOD splitMethod;
+	int pcaDim = 0;
 
 	//TODO: handle config msg
 	splitMethod = spConfigGetspKDTreeSplitMethod(config, &configMsg);
+	pcaDim = spConfigGetPCADim(config, &configMsg);
 
 	switch(splitMethod)
 	{
 		case RANDOM:
 		{
-			break;
+			srand(time(NULL));
+			return (rand() % pcaDim);
 		}
 		case MAX_SPREAD:
 		{
-			break;
+			return spKDSArrayGetMaxSpreadDimension(kdArr);
 		}
 		case INCREMENTAL:
 		{
-			return upperLevelSplitDim++;
+			upperLevelSplitDim++;
+
+			return (upperLevelSplitDim % pcaDim);
+		}
+		default:
+		{
+			return INVALID_VALUE;
 		}
 	}
 }
 
-SPKDTreeNode createKDTreeFromKDArray(SPKDArray kdArray, int splitDimension)
+SPKDTreeNode createKDTreeFromKDArray(SPKDArray kdArray, int upperLevelSplitDim, SPConfig config)
 {
 	SPKDTreeNode kdTreeNode = NULL;
 	SPKDSplittedArray kdSplittedArray = NULL;
+	int splitDimension = 0;
 
 	kdTreeNode = (SPKDTreeNode)malloc(sizeof(*kdTreeNode));
 	if (!kdTreeNode)
@@ -68,6 +78,8 @@ SPKDTreeNode createKDTreeFromKDArray(SPKDArray kdArray, int splitDimension)
 	}
 	else
 	{
+		splitDimension = getSplitDimension(config, kdArray, upperLevelSplitDim);
+
 		kdSplittedArray = spKDArraySplit(kdArray, splitDimension);
 		if (!kdSplittedArray)
 		{
@@ -76,13 +88,13 @@ SPKDTreeNode createKDTreeFromKDArray(SPKDArray kdArray, int splitDimension)
 
 		kdTreeNode->Dim = splitDimension;
 		kdTreeNode->Val = spKDArrayGetSplitMedian(kdArray, splitDimension);
-		kdTreeNode->Left = createKDTreeFromKDArray(spKDSplittedArrayGetLeft(kdSplittedArray), splitDimension);
+		kdTreeNode->Left = createKDTreeFromKDArray(spKDSplittedArrayGetLeft(kdSplittedArray), splitDimension, config);
 		if (!kdTreeNode->Left)
 		{
 			//TODO: handle
 		}
 
-		kdTreeNode->Right = createKDTreeFromKDArray(spKDSplittedArrayGetRight(kdSplittedArray), splitDimension);
+		kdTreeNode->Right = createKDTreeFromKDArray(spKDSplittedArrayGetRight(kdSplittedArray), splitDimension, config);
 		if (!kdTreeNode->Right)
 		{
 			//TODO: handle
@@ -96,7 +108,7 @@ SPKDTreeNode createKDTreeFromKDArray(SPKDArray kdArray, int splitDimension)
 	return kdTreeNode;
 }
 
-SPKDTreeNode spKDTreeNodeCreate(SPPoint* features, int size, int splitDimension)
+SPKDTreeNode spKDTreeNodeCreate(SPPoint* features, int size, SPConfig config)
 {
 	SPKDArray kdArray = spKDArrayInit(features, size);
 	if (!kdArray)
@@ -104,7 +116,7 @@ SPKDTreeNode spKDTreeNodeCreate(SPPoint* features, int size, int splitDimension)
 		// TODO: handle
 	}
 
-	return createKDTreeFromKDArray(kdArray, splitDimension);
+	return createKDTreeFromKDArray(kdArray, config, INVALID_VALUE);
 }
 
 bool SPKDTreeNodeIsLeaf(SPKDTreeNode node)
@@ -155,7 +167,7 @@ void KNNSearch(SPKDTreeNode curr , SPBPQueue bpq, SPPoint testPoint)
 	/* If the candidate hypersphere crosses this splitting plane, look on the
 	* other side of the plane by examining the other subtree*/
 	if (!spBPQueueIsFull(bpq) ||
-			(pow(curr->Val - spPointGetAxisCoor(testPoint, curr->Dim), 2) < spBPQueueMaxValue(bpq)))
+			(pow(curr->Val - spPointGetAxisCoor(testPoint, curr->Dim), (double)2) < spBPQueueMaxValue(bpq)))
 	{
 		//recursively search the other subtree on the next axis
 		if (lastStep)
@@ -171,7 +183,7 @@ void KNNSearch(SPKDTreeNode curr , SPBPQueue bpq, SPPoint testPoint)
 	}
 }
 
-SPKDTreeNode spCreateKDTreeFromImages(SPImage* imagesFeatures, SPConfig config, int splitDimension)
+SPKDTreeNode spCreateKDTreeFromImages(SPImage* imagesFeatures, SPConfig config)
 {
 	SP_CONFIG_MSG configMsg;
 	SPKDTreeNode kdTree = NULL;
@@ -207,7 +219,7 @@ SPKDTreeNode spCreateKDTreeFromImages(SPImage* imagesFeatures, SPConfig config, 
 		}
 	}
 
-	kdTree = spKDTreeNodeCreate(allFeatures, numOfAllFeatures, splitDimension);
+	kdTree = spKDTreeNodeCreate(allFeatures, numOfAllFeatures, config);
 
 	// TODO: free all SPImage shit
 
