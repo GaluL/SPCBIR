@@ -39,7 +39,6 @@ bool spSerializeImagesFeatures(SPImage* imagesFeatures, SPConfig config)
 {
 	int i = 0;
 	int numOfImages = 0;
-	char* imagesPath = NULL;
 	SP_CONFIG_MSG configMsg;
 	char* imageFeatsPath = (char*)malloc((MAX_FILE_PATH_LEN + 1) * sizeof(char));
 	if (!imageFeatsPath)
@@ -60,6 +59,47 @@ bool spSerializeImagesFeatures(SPImage* imagesFeatures, SPConfig config)
 			return false;
 		}
 	}
+
+	free(imageFeatsPath);
+
+	return true;
+}
+
+bool spDeserializeImagesFeatures(SPImage** imagesFeatures, SPConfig config)
+{
+	int i = 0;
+	int numOfImages = 0;
+	SP_CONFIG_MSG configMsg;
+	char* imageFeatsPath = (char*)malloc((MAX_FILE_PATH_LEN + 1) * sizeof(char));
+	if (!imageFeatsPath)
+	{
+		//TODO: handle
+		return false;
+	}
+
+	//TODO: check config msg
+	numOfImages = spConfigGetNumOfImages(config, &configMsg);
+	*imagesFeatures = (SPImage*)malloc(numOfImages * sizeof(SPImage));
+	if (!(*imagesFeatures))
+	{
+		//TODO: handle
+		return false;
+	}
+
+	for (i = 0; i < numOfImages; ++i)
+	{
+		// TODO: handle failure
+		 configMsg = spConfigGetImageFeatsPath(imageFeatsPath, config, i);
+
+		 (*imagesFeatures)[i] = spImageCreateFromFeats(imageFeatsPath);
+		 if (!(*imagesFeatures)[i])
+		 {
+			 // TODO: handle
+			 return false;
+		 }
+	}
+
+	free(imageFeatsPath);
 
 	return true;
 }

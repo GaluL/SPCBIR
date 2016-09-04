@@ -14,5 +14,6 @@
 
 char* spGetConfigFileName(int argc, char** argv);
 bool spSerializeImagesFeatures(SPImage* imagesFeatures, SPConfig config);
+bool spDeserializeImagesFeatures(SPImage** imagesFeatures, SPConfig config);
 
 #endif /* SPMAINAUX_H_ */

@@ -91,8 +91,7 @@ int main(int argc, char** argv)
 	int numOfImages = 0;
 	SPImage* imagesFeatures = NULL;
 	SPLogger logger = NULL;
-
-	//UnitTest();
+	bool extractMode = false;
 
 	if (!configFileName)
 	{
@@ -108,17 +107,29 @@ int main(int argc, char** argv)
 		imgProc = new sp::ImageProc(config);
 		// TODO: handle failures
 		numOfImages = spConfigGetNumOfImages(config, &configMsg);
+		extractMode = spConfigIsExtractionMode(config, &configMsg);
 
-		imagesFeatures = extractImagesFeatures(config, imgProc, numOfImages);
-		if (!imagesFeatures)
+		if (extractMode)
 		{
-			//TODO: handle
+			imagesFeatures = extractImagesFeatures(config, imgProc, numOfImages);
+			if (!imagesFeatures)
+			{
+				//TODO: handle
+			}
+
+			if (!spSerializeImagesFeatures(imagesFeatures, config))
+			{
+				return -1;
+			}
+		}
+		else
+		{
+			if (!spDeserializeImagesFeatures(&imagesFeatures, config))
+			{
+				return -1;
+			}
 		}
 
-		if (!spSerializeImagesFeatures(imagesFeatures, config))
-		{
-
-		}
 	}
 
 	return 0;
