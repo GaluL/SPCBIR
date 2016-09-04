@@ -42,7 +42,7 @@ bool spSerializeImagesFeatures(SPImage* imagesFeatures, SPConfig config)
 	char* imagesPath = NULL;
 	SP_CONFIG_MSG configMsg;
 	char* imageFeatsPath = (char*)malloc((MAX_FILE_PATH_LEN + 1) * sizeof(char));
-	if (!imagesPath)
+	if (!imageFeatsPath)
 	{
 		//TODO: handle
 		return false;

@@ -17,14 +17,13 @@ extern "C"
 #include "SPConfig.h"
 }
 
-SPImage* extractImagesFeatures(const SPConfig config, sp::ImageProc imgProc, int numOfImages)
+SPImage* extractImagesFeatures(const SPConfig config, sp::ImageProc* imgProc, int numOfImages)
 {
 	SPImage* imagesFeatures = NULL;
 	SPPoint* features = NULL;
 	SP_CONFIG_MSG configMsg;
 	int i = 0;
 	int featuresExtracted = 0;
-
 	char* imagePath = (char*)malloc((MAX_FILE_PATH_LEN + 1) * sizeof(char));
 	if (!imagePath)
 	{
@@ -40,7 +39,7 @@ SPImage* extractImagesFeatures(const SPConfig config, sp::ImageProc imgProc, int
 	for (i = 0; i < numOfImages; ++i)
 	{
 		spConfigGetImagePath(imagePath, config, i);
-		features = imgProc.getImageFeatures(imagePath, i, &featuresExtracted);
+		features = imgProc->getImageFeatures(imagePath, i, &featuresExtracted);
 		imagesFeatures[i] = spImageCreateFromImg(features, featuresExtracted);
 		if (!imagesFeatures)
 		{
@@ -87,13 +86,13 @@ int main(int argc, char** argv)
 {
 	SPConfig config = NULL;
 	SP_CONFIG_MSG configMsg;
-	char* configFileName = NULL/*spGetConfigFileName(argc, argv)*/;
+	char* configFileName = spGetConfigFileName(argc, argv);
 	sp::ImageProc* imgProc = NULL;
 	int numOfImages = 0;
 	SPImage* imagesFeatures = NULL;
 	SPLogger logger = NULL;
 
-	UnitTest();
+	//UnitTest();
 
 	if (!configFileName)
 	{
@@ -101,16 +100,16 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
-	//config = spConfigCreate(configFileName, &configMsg);
+	config = spConfigCreate(configFileName, &configMsg);
 	if (config)
 	{
 		//TODO: wait for ofek's implementation
 		//logger = spLoggerCreate(, )
-		//imgProc = new sp::ImageProc(config);
+		imgProc = new sp::ImageProc(config);
 		// TODO: handle failures
 		numOfImages = spConfigGetNumOfImages(config, &configMsg);
 
-		//imagesFeatures = extractImagesFeatures(config, imgProc, numOfImages);
+		imagesFeatures = extractImagesFeatures(config, imgProc, numOfImages);
 		if (!imagesFeatures)
 		{
 			//TODO: handle

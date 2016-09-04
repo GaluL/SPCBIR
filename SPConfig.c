@@ -450,7 +450,7 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 		fflush(NULL);
 		return NULL;
 	}
-	FILE *file = fopen(filenameofek, "r");
+	FILE *file = fopen(filename, "r");
 	//deal with error 3 file couldnt open
 	if (!file)
 	{
@@ -574,8 +574,7 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 		return NULL;
 	}
 	*msg = SP_CONFIG_SUCCESS;
-	printf("success");
-	fflush(NULL);
+
 	return config;
 }
 
@@ -733,17 +732,23 @@ int spConfigGetPCADim(const SPConfig config, SP_CONFIG_MSG* msg)
 int spConfigHowManyDigits(int n)
 {
 	int count = 0;
-	while(n!=0)
-	    {
-	        n /= 10;             // n = n/10
-	        ++count;
-	    }
+
+	if (n == 0)
+	{
+		return 1;
+	}
+
+	while(n != 0)
+	{
+		n /= 10;             // n = n/10
+		++count;
+	}
+
 	return count;
 }
 SP_CONFIG_MSG spConfigGetImagePath(char* imagePath, const SPConfig config,
 		int index)
 {
-
 	return spConfigGetImageCombPath(imagePath, config, index, config->spImagesSuffix);
 }
 SP_CONFIG_MSG spConfigGetImageFeatsPath(char* imageFeatsPath, const SPConfig config,
@@ -756,6 +761,9 @@ SP_CONFIG_MSG spConfigGetImageCombPath(char* imagePath, const SPConfig config,
 		int index, char* suffix)
 {
 	SP_CONFIG_MSG msg;
+	char* intBuffer = NULL;
+	int index_len = spConfigHowManyDigits(index);
+
 	if ((!config)||(!imagePath))
 	{
 		msg = SP_CONFIG_INVALID_ARGUMENT;
@@ -766,14 +774,9 @@ SP_CONFIG_MSG spConfigGetImageCombPath(char* imagePath, const SPConfig config,
 		msg = SP_CONFIG_INDEX_OUT_OF_RANGE;
 		return msg;
 	}
-	int directory_len = 0;
-	int prefix_len = 0;
-	int suffix_len = 0;
-	int index_len = spConfigHowManyDigits(index);
-	int fullpath_name_len = 0;
-	char* intBuffer;
+
 	// check numbers set up
-	intBuffer = (char*)malloc((index_len+1) * sizeof(char));
+	intBuffer = (char*)malloc((index_len + 1) * sizeof(char));
 	if (!intBuffer)
 	{
 		msg = SP_CONFIG_ALLOC_FAIL;
@@ -781,24 +784,16 @@ SP_CONFIG_MSG spConfigGetImageCombPath(char* imagePath, const SPConfig config,
 	}
 
 	sprintf(intBuffer, "%d", index);
-	directory_len = strlen(config->spImagesDirectory);
-	prefix_len = strlen(config->spImagesPrefix);
-	suffix_len = strlen(suffix);
-	fullpath_name_len = directory_len + prefix_len + index_len + suffix_len;
-	if (fullpath_name_len <= strlen(imagePath))
+
+	if (!sprintf(imagePath, "%s%s%s%s", config->spImagesDirectory, config->spImagesPrefix,
+						intBuffer, suffix))
 	{
-		sprintf(imagePath, "%s%s%s%s", config->spImagesDirectory, config->spImagesPrefix,
-						intBuffer, suffix);
+		// TODO: handle
 	}
-	else
-	{
-		// TODO: check what to do
-		printf("problem not enough memory in imagepath");
-		msg = SP_CONFIG_ALLOC_FAIL;
-		return msg;
-	}
+
 	free(intBuffer);
 	msg = SP_CONFIG_SUCCESS;
+
 	return msg;
 }
 
@@ -827,23 +822,12 @@ SP_CONFIG_MSG spConfigGetPCAPath(char* pcaPath, const SPConfig config)
 		msg = SP_CONFIG_INVALID_ARGUMENT;
 		return msg;
 	}
-	int directory_len = 0;
-	int PcaFilename_len = 0;
-	int fullpath_name_len = 0;
-	directory_len = strlen(config->spImagesDirectory);
-	PcaFilename_len = strlen(config->spPCAFilename);
-	fullpath_name_len = directory_len + PcaFilename_len;
-	if (fullpath_name_len <= strlen(pcaPath))
+
+	if (!sprintf(pcaPath, "%s%s", config->spImagesDirectory, config->spPCAFilename))
 	{
-		sprintf(pcaPath, "%s%s", config->spImagesDirectory, config->spPCAFilename);
+		// TODO: handle
 	}
-	else
-	{
-		// TODO: check what to do
-		printf("problem - not enough memory in pcapath");
-		msg = SP_CONFIG_ALLOC_FAIL;
-		return msg;
-	}
+
 	msg = SP_CONFIG_SUCCESS;
 	return msg;
 }
