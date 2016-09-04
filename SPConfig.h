@@ -236,8 +236,24 @@ SP_CONFIG_MSG spConfigGetPCAPath(char* pcaPath, const SPConfig config);
  * If config == NULL nothig is done.
  */
 void spConfigDestroy(SPConfig config);
+
+int spConfigGetNumOfSimilarImage (const SPConfig config,SP_CONFIG_MSG* msg);
+
+SP_KDTREE_SPLIT_METHOD spConfigGetspKDTreeSplitMethod (const SPConfig config, SP_CONFIG_MSG* msg);
+
+int spConfigGetKNN (const SPConfig config, SP_CONFIG_MSG* msg);
+
+int spConfigLoggerLevel (const SPConfig config, SP_CONFIG_MSG* msg);
+
+SP_CONFIG_MSG spConfigGetLoggerFilename(char* loggerFileName, const SPConfig config);
+
+
+bool spIsDefaultInitiate(const char* filename, SP_CONFIG_MSG* msg,SPConfig config, int line);
+
 SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg);
 void spRegularErrorPrinter(const char* filename, int line,int ErrorTypeNum, char* paramterName);
 int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
 		const char* filename);
+
+
 #endif /* SPCONFIG_H_ */

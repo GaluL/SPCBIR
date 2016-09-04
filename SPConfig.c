@@ -443,10 +443,11 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 	char* temp_variable;
 	char* variable_name = NULL;
 	char* variable_value = NULL;
+	bool isDefuatInit = true;
 	if (!filename)
 	{
 		*msg = SP_CONFIG_INVALID_ARGUMENT;
-		printf("%s,%s,%s/n",ERROR_THE_CONFIGURATION_FILE,filename,ERROR_COULD_NOT_OPEN);
+		printf("%s%s%s/n",ERROR_THE_CONFIGURATION_FILE,filename,ERROR_COULD_NOT_OPEN);
 		fflush(NULL);
 		return NULL;
 	}
@@ -540,6 +541,8 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 		succeeded = spAssignArgument(config, variable_name, variable_value, msg, line_counter, filename);
 		if (succeeded == 1)
 		{
+		free(variable_name);
+		free(variable_value);
 		line_counter++;
 		}
 		else if (succeeded == 0)
@@ -557,24 +560,15 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 		return NULL;
 		}
 	}
-	if (!config->spImagesDirectory)
+	// check all must initiate variables were initiate
+	isDefuatInit = spIsDefaultInitiate(filename, msg, config, line_counter);
+	if (!isDefuatInit)
 	{
-		*msg = SP_CONFIG_MISSING_DIR;
-		spRegularErrorPrinter(filename,line_counter,2,SP_IMAGES_DIRECTORY);
-		spConfigDestroy(config);
-		fclose(file);
-		return NULL;
-	}
-	if (!config->spImagesPrefix)
-	{
-		*msg = SP_CONFIG_MISSING_PREFIX;
-		spRegularErrorPrinter(filename,line_counter,2,SP_IMAGES_PREFIX);
-		spConfigDestroy(config);
 		fclose(file);
 		return NULL;
 	}
 	*msg = SP_CONFIG_SUCCESS;
-
+	fclose(file);
 	return config;
 }
 
@@ -592,15 +586,13 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 bool spConfigIsExtractionMode(const SPConfig config, SP_CONFIG_MSG* msg)
 {
 	assert(msg != NULL);
-	bool result;
 	if (!config)
 	{
 		*msg = SP_CONFIG_INVALID_ARGUMENT;
 		return NULL;
 	}
-	result = config->spExtractionMode;
 	*msg = SP_CONFIG_SUCCESS;
-	return result;
+	return config->spExtractionMode;
 }
 
 /*
@@ -617,15 +609,13 @@ bool spConfigIsExtractionMode(const SPConfig config, SP_CONFIG_MSG* msg)
 bool spConfigMinimalGui(const SPConfig config, SP_CONFIG_MSG* msg)
 {
 	assert(msg != NULL);
-	bool result;
 	if (!config)
 	{
 		*msg = SP_CONFIG_INVALID_ARGUMENT;
 		return NULL;
 	}
-	result = config->spMinimalGUI;
 	*msg = SP_CONFIG_SUCCESS;
-	return result;
+	return config->spMinimalGUI;
 }
 /*
  * Returns the number of images set in the configuration file, i.e the value
@@ -643,15 +633,13 @@ int spConfigGetNumOfImages(const SPConfig config, SP_CONFIG_MSG* msg)
 {
 
 		assert(msg != NULL);
-		int result;
 		if (!config)
 		{
 			*msg = SP_CONFIG_INVALID_ARGUMENT;
 			return -1;
 		}
-		result = config->spNumOfImages;
 		*msg = SP_CONFIG_SUCCESS;
-		return result;
+		return config->spNumOfImages;
 }
 /*
  * Returns the number of features to be extracted. i.e the value
@@ -668,15 +656,13 @@ int spConfigGetNumOfImages(const SPConfig config, SP_CONFIG_MSG* msg)
 int spConfigGetNumOfFeatures(const SPConfig config, SP_CONFIG_MSG* msg)
 {
 	assert(msg != NULL);
-	int result;
 	if (!config)
 	{
 		*msg = SP_CONFIG_INVALID_ARGUMENT;
 		return -1;
 	}
-	result = config->spNumOfFeatures;
 	*msg = SP_CONFIG_SUCCESS;
-	return result;
+	return config->spNumOfFeatures;
 }
 
 /**
@@ -693,15 +679,13 @@ int spConfigGetNumOfFeatures(const SPConfig config, SP_CONFIG_MSG* msg)
 int spConfigGetPCADim(const SPConfig config, SP_CONFIG_MSG* msg)
 {
 	assert(msg != NULL);
-	int result;
 	if (!config)
 	{
 		*msg = SP_CONFIG_INVALID_ARGUMENT;
 		return -1;
 	}
-	result = config->spPCADimension;
 	*msg = SP_CONFIG_SUCCESS;
-	return result;
+	return config->spPCADimension;
 }
 
 /**
@@ -862,6 +846,106 @@ void spConfigDestroy(SPConfig config)
 		}
 		free (config);
 	}
+}
+bool spIsDefaultInitiate(const char* filename, SP_CONFIG_MSG* msg,SPConfig config, int line)
+{
+	if (!config->spImagesDirectory)
+	{
+		*msg = SP_CONFIG_MISSING_DIR;
+		spRegularErrorPrinter(filename,line,2,SP_IMAGES_DIRECTORY);
+		spConfigDestroy(config);
+		return false;
+	}
+	if (!config->spImagesPrefix)
+	{
+		*msg = SP_CONFIG_MISSING_PREFIX;
+		spRegularErrorPrinter(filename,line,2,SP_IMAGES_PREFIX);
+		spConfigDestroy(config);
+		return false;
+	}
+	if (!config->spImagesSuffix)
+	{
+		*msg = SP_CONFIG_MISSING_SUFFIX;
+		spRegularErrorPrinter(filename,line,2,SP_IMAGES_SUFFIX);
+		spConfigDestroy(config);
+		return false;
+	}
+	if (config->spNumOfImages < 1)
+	{
+		*msg = SP_CONFIG_MISSING_NUM_IMAGES;
+		spRegularErrorPrinter(filename,line,2,SP_NUM_OF_IMAGES);
+		spConfigDestroy(config);
+		return false;
+	}
+	return true;
+}
+
+int spConfigGetNumOfSimilarImage (const SPConfig config, SP_CONFIG_MSG* msg)
+{
+	assert(msg != NULL);
+		if (!config)
+		{
+			*msg = SP_CONFIG_INVALID_ARGUMENT;
+			return -1;
+		}
+		*msg = SP_CONFIG_SUCCESS;
+		return config->spNumOfImages;
+}
+
+SP_KDTREE_SPLIT_METHOD spConfigGetspKDTreeSplitMethod (const SPConfig config, SP_CONFIG_MSG* msg)
+{
+	assert(msg != NULL);
+		if (!config)
+		{
+			*msg = SP_CONFIG_INVALID_ARGUMENT;
+			return -1;
+		}
+		*msg = SP_CONFIG_SUCCESS;
+		return config->spKDTreeSplitMethod;
+}
+
+int spConfigGetKNN (const SPConfig config, SP_CONFIG_MSG* msg)
+{
+	assert(msg != NULL);
+		if (!config)
+		{
+			*msg = SP_CONFIG_INVALID_ARGUMENT;
+			return -1;
+		}
+		*msg = SP_CONFIG_SUCCESS;
+		return config->spKNN;
+
+}
+int spConfigLoggerLevel (const SPConfig config,SP_CONFIG_MSG* msg)
+{
+	assert(msg != NULL);
+		if (!config)
+		{
+			*msg = SP_CONFIG_INVALID_ARGUMENT;
+			return -1;
+		}
+		*msg = SP_CONFIG_SUCCESS;
+		return config->spLoggerLevel;
+
+}
+
+
+SP_CONFIG_MSG spConfigGetLoggerFilename(char* loggerFileName, const SPConfig config)
+{
+	SP_CONFIG_MSG msg;
+		if ((!config)||(!loggerFileName))
+		{
+			msg = SP_CONFIG_INVALID_ARGUMENT;
+			return msg;
+		}
+
+		if (!sprintf(loggerFileName, "%s", config->spLoggerFilename))
+		{
+			// TODO: handle
+		}
+
+		msg = SP_CONFIG_SUCCESS;
+		return msg;
 }
 
 
