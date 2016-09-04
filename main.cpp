@@ -16,7 +16,7 @@ extern "C"
 #include "SPMainAux.h"
 #include "SPConfig.h"
 }
-
+/*
 SPImage* extractImagesFeatures(const SPConfig config, sp::ImageProc imgProc, int numOfImages)
 {
 	SPImage* imagesFeatures = NULL;
@@ -51,26 +51,43 @@ SPImage* extractImagesFeatures(const SPConfig config, sp::ImageProc imgProc, int
 
 	return imagesFeatures;
 }
-
+*/
 int main(int argc, char** argv)
 {
 	SPConfig config = NULL;
 	SP_CONFIG_MSG configMsg;
-	char* configFileName = spGetConfigFileName(argc, argv);
+	char* defaultFile;
+/*	char* configFileName = spGetConfigFileName(argc, argv);
 	sp::ImageProc imgProc = NULL;
 	int numOfImages = 0;
 	SPImage* imagesFeatures = NULL;
 	SPLogger logger = NULL;
 
-	if (!configFileName)
-	{
+//	if (!configFileName)
+//	{
 		// TODO: handle
-		return 0;
-	}
-
-	config = spConfigCreate(configFileName, &configMsg);
+//		return 0;
+//	}
+ *
+ */
+	defaultFile = (char*)malloc((strlen(filenameofek) + 1) * sizeof(char));
+	strcpy(defaultFile,filenameofek);
+	config = spConfigCreate(defaultFile, &configMsg);
 	if (config)
 	{
+		printf("success");
+	}
+	/*
+	char* input;
+	char* temp_variable;
+	char* variable_name = NULL;
+	char* variable_value = NULL;
+	temp_variable = (char*)malloc((strlen(input) + 1) * sizeof(char));
+	strcpy(temp_variable,input);
+	variable_name = spCleaningString(temp_variable,msg,filename,line_counter);
+	*/
+	/*
+	 *
 		//TODO: wait for ofek's implementation
 		//logger = spLoggerCreate(, )
 		imgProc = sp::ImageProc(config);
@@ -88,6 +105,6 @@ int main(int argc, char** argv)
 
 		}
 	}
-
+*/
 	return 0;
 }

@@ -56,7 +56,7 @@
 #define SUFFIX_PNG ".png"
 #define SUFFIX_BMP ".bmp"
 #define SUFFIX_GIF ".gif"
-
+#define filenameofek "est.txt"
 /**
  * A data-structure which is used for configuring the system.
  */
@@ -206,7 +206,7 @@ int spConfigGetPCADim(const SPConfig config, SP_CONFIG_MSG* msg);
 SP_CONFIG_MSG spConfigGetImagePath(char* imagePath, const SPConfig config,
 		int index);
 
-SP_CONFIG_MSG spConfigGetImageFeathsPath(char* imageFeatsPath, const SPConfig config,
+SP_CONFIG_MSG spConfigGetImageFeatsPath(char* imageFeatsPath, const SPConfig config,
 		int index);
 
 /**
@@ -232,5 +232,8 @@ SP_CONFIG_MSG spConfigGetPCAPath(char* pcaPath, const SPConfig config);
  * If config == NULL nothig is done.
  */
 void spConfigDestroy(SPConfig config);
-
+SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg);
+void spRegularErrorPrinter(const char* filename, int line,int ErrorTypeNum, char* paramterName);
+int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+		const char* filename);
 #endif /* SPCONFIG_H_ */

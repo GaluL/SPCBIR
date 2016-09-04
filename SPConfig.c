@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <assert.h>
 
 
 struct sp_config_t
@@ -54,7 +55,7 @@ SPConfig spConfigInit()
 		free(config);
 		return NULL;
 	}
-	config->spPCAFilename = PCA_FILE_NAME_DEFULT;
+	strcpy(config->spPCAFilename, PCA_FILE_NAME_DEFULT);
 	config->spNumOfFeatures = NUM_OF_FEATURES_DEFULT;
 	config->spExtractionMode = true;
 	config->spNumOfSimilarImages = NUM_OF_SIMILAR_IMAGES_DEFULT;
@@ -70,9 +71,15 @@ SPConfig spConfigInit()
 			free(config);
 			return NULL;
 		}
-	config->spLoggerFilename = LOGGER_FILE_NAME_DEFULT;
+	strcpy(config->spLoggerFilename, LOGGER_FILE_NAME_DEFULT);
 	return config;
 }
+/*
+ * function that print regular errors
+ * error type num = 0 ->  If a line is invalid
+ * 					1 ->  If any of the constraints on the system parameters are not met
+ * 					2 ->  If a parameter with no default value is not set
+ */
 void spRegularErrorPrinter(const char* filename, int line,int ErrorTypeNum, char* paramterName)
 {
 	char * errorArray[] = {ERROR_INVALID_CONFIGURATION_LINE,ERROR_INVALID_VALUE,
@@ -80,13 +87,13 @@ void spRegularErrorPrinter(const char* filename, int line,int ErrorTypeNum, char
 
 	if (ErrorTypeNum != 2)
 	{
-		printf("%s,%s\n,%s,%d\n,%s,%s\n",ERROR_FILE, filename, ERROR_LINE, line, ERROR_MASSAGE,
+		printf("%s%s\n%s%d\n%s%s\n",ERROR_FILE, filename, ERROR_LINE, line, ERROR_MASSAGE,
 				 errorArray[ErrorTypeNum]);
 		fflush(NULL);
 	}
 	else
 	{
-		printf("%s,%s\n,%s,%d\n,%s,%s,%s,%s\n", ERROR_FILE, filename, ERROR_LINE, line,
+		printf("%s%s\n%s%d\n%s%s%s%s\n", ERROR_FILE, filename, ERROR_LINE, line,
 				 ERROR_MASSAGE,errorArray[ErrorTypeNum],paramterName,errorArray[+1]);
 		fflush(NULL);
 	}
@@ -96,10 +103,13 @@ char* spCleaningString(char* str,SP_CONFIG_MSG* msg,const char* filename,int lin
 {
 	char* result;
 	int length = strlen(str);
-	char temp[length];
+	char* temp = (char*)malloc((length + 1) * sizeof(char));
 	char letter;
 	int i = 0;
 	int j = 0;
+	int isBlankFound = 0;
+	int isCharFound = 0;
+// blank
 	for (i = 0; i < length; i++)
 	{
 		letter = str[i];
@@ -117,18 +127,31 @@ char* spCleaningString(char* str,SP_CONFIG_MSG* msg,const char* filename,int lin
 			result = SKIP;
 			return result;
 		}
-		// check if the char is not a space assign
-		else if (!isspace(letter))
+		else
+			// if space is found we need to check that it is not in the middle of the variable
 		{
-			temp [j] = letter;
-			j++;
-		}
-		else if (j != 0)
-		{
-			*msg = SP_CONFIG_INVALID_STRING;
-			spRegularErrorPrinter(filename,line,0,DUMMY);
-			return NULL;
-		}
+			if (isspace(letter))
+			{
+				isBlankFound = 1;
+			}
+			else
+			{
+				// if both are on means there is a problem and we find a space in the middle
+				if ((isCharFound)&&(isBlankFound))
+				{
+					*msg = SP_CONFIG_INVALID_STRING;
+					spRegularErrorPrinter(filename,line,0,DUMMY);
+					return NULL;
+				}
+				else
+				{
+					temp[j] = letter;
+					j++;
+					isBlankFound = 0;
+					isCharFound = 1;
+				}
+			}
+		 }
 	}
 	if (j == 0)
 	{
@@ -136,65 +159,71 @@ char* spCleaningString(char* str,SP_CONFIG_MSG* msg,const char* filename,int lin
 		result = SKIP_EMPTY_LINE;
 		return result;
 	}
-	length = strlen(temp);
+	// reduce j by 1 because the last letter incremented it
+	temp[j] = '\0';
+	length = j-1;
 	result = (char*)malloc((length + 1) * sizeof(char));
 	if (!result)
 	{
 		printf("memory allocation problem");
 		return NULL;
 	}
+
 	strcpy(result, temp);
+	free (temp);
 	return result;
 	}
-void spConfigDestroy(SPConfig config)
-{
-	if (config->spImagesDirectory)
-	{
-		free(config->spImagesDirectory);
-	}
-	if (config->spImagesPrefix)
-	{
-		free(config->spImagesPrefix);
-	}
-	if (config->spImagesSuffix)
-	{
-		free(config->spImagesSuffix);
-	}
-	if (config->spPCAFilename)
-	{
-		free(config->spPCAFilename);
-	}
-	if (config->spLoggerFilename)
-	{
-		free(config->spLoggerFilename);
-	}
-	free (config);
 
-}
-int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg)
+int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+		const char* filename)
 {
 	int i = 2;
 	if (! strcmp(variable_name,SP_IMAGES_DIRECTORY))
 	{
-		config->spImagesDirectory = variable_value;
+		config->spImagesDirectory = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
+		if (!config->spImagesDirectory)
+		{
+			*msg = SP_CONFIG_ALLOC_FAIL;
+			spConfigDestroy(config);
+			return 3;
+		}
+		strcpy(config->spImagesDirectory,variable_value);
 		i = 1;
+		return i;
 	}
 	else if (! strcmp(variable_name,SP_IMAGES_PREFIX))
 	{
-		config->spImagesPrefix = variable_value;
+		config->spImagesPrefix = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
+		if (!config->spImagesPrefix)
+		{
+			*msg = SP_CONFIG_ALLOC_FAIL;
+			spConfigDestroy(config);
+			return 3;
+		}
+		strcpy(config->spImagesPrefix,variable_value);
 		i = 1;
+		return i;
 	}
 	else if (! strcmp(variable_name,SP_IMAGES_SUFFIX))
 	{
 		if ((strcmp(variable_value,SUFFIX_JPEG)== 0) || (strcmp(variable_value,SUFFIX_PNG)== 0)|| \
 				(strcmp(variable_value,SUFFIX_BMP)== 0) || (strcmp(variable_value,SUFFIX_GIF)== 0))
 		{
-			config->spImagesSuffix = variable_value;
+			config->spImagesSuffix = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
+			if (!config->spImagesSuffix)
+			{
+				*msg = SP_CONFIG_ALLOC_FAIL;
+				spConfigDestroy(config);
+				return 3;
+			}
+			strcpy(config->spImagesSuffix,variable_value);
 			i = 1;
+			return i;
 		}
 		else
 		{
-			printf("Message: Invalid value - constraint not met");
+			*msg = SP_CONFIG_INVALID_STRING;
+			spRegularErrorPrinter(filename,line,1,DUMMY);
 			spConfigDestroy(config);
 			return 0;
 		}
@@ -204,11 +233,13 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 		if (atoi(variable_value) > 0)
 		{
 			config->spNumOfImages = atoi(variable_value);
-		i = 1;
+			i = 1;
+			return i;
 		}
 		else
 		{
-			printf("Message: Invalid value - constraint not met");
+			*msg = SP_CONFIG_INVALID_INTEGER;
+			spRegularErrorPrinter(filename,line,1,DUMMY);
 			spConfigDestroy(config);
 			return 0;
 		}
@@ -220,18 +251,29 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 		{
 			config->spPCADimension = atoi(variable_value);
 			i = 1;
+			return i;
 		}
 		else
 		{
-			printf("Message: Invalid value - constraint not met");
+			*msg = SP_CONFIG_INVALID_INTEGER;
+			spRegularErrorPrinter(filename,line,1,DUMMY);
 			spConfigDestroy(config);
 			return 0;
 		}
 	}
 	else if (! strcmp(variable_name,SP_PCA_FILE_NAME))
 	{
-		config->spPCAFilename = variable_value;
+		free(config->spPCAFilename);
+		config->spPCAFilename = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
+		if (!config->spPCAFilename)
+		{
+		*msg = SP_CONFIG_ALLOC_FAIL;
+		spConfigDestroy(config);
+		return 3;
+		}
+		strcpy(config->spPCAFilename,variable_value);
 		i = 1;
+		return i;
 	}
 	else if (! strcmp(variable_name,SP_NUM_OF_FEATURES))
 	{
@@ -242,21 +284,31 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 		}
 		else
 		{
-			printf("Message: Invalid value - constraint not met");
+			*msg = SP_CONFIG_INVALID_INTEGER;
+			spRegularErrorPrinter(filename,line,1,DUMMY);
 			spConfigDestroy(config);
 			return 0;
 		}
 	}
 	else if (! strcmp(variable_name,SP_EXTRACTION_MODE))
 	{
-		if ((strcmp(variable_value,"true")== 0) || (strcmp(variable_value,"false")== 0))
+		if (strcmp(variable_value,"true")== 0)
 		{
-			config->spExtractionMode = variable_value;
+
+			config->spExtractionMode = true;
 			i = 1;
+			return i;
+		}
+		else if (strcmp(variable_value,"false")== 0)
+		{
+			config->spExtractionMode = false;
+			i = 1;
+			return i;
 		}
 		else
 		{
-			printf("Message: Invalid value - constraint not met");
+			*msg = SP_CONFIG_INVALID_STRING;
+			spRegularErrorPrinter(filename,line,1,DUMMY);
 			spConfigDestroy(config);
 			return 0;
 		}
@@ -271,7 +323,8 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 		}
 		else
 		{
-			printf("Message: Invalid value - constraint not met");
+			*msg = SP_CONFIG_INVALID_INTEGER;
+			spRegularErrorPrinter(filename,line,1,DUMMY);
 			spConfigDestroy(config);
 			return 0;
 		}
@@ -296,7 +349,8 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 		}
 		else
 		{
-			printf("error constraint not met");
+			*msg = SP_CONFIG_INVALID_STRING;
+			spRegularErrorPrinter(filename,line,1,DUMMY);
 			spConfigDestroy(config);
 			return 0;
 		}
@@ -311,21 +365,30 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 		}
 		else
 		{
-			printf("Message: Invalid value - constraint not met");
+			*msg = SP_CONFIG_INVALID_INTEGER;
+			spRegularErrorPrinter(filename,line,1,DUMMY);
 			spConfigDestroy(config);
 			return 0;
 		}
 	}
 	else if (! strcmp(variable_name,SP_MINMIMAL_GUI))
 	{
-		if ((strcmp(variable_value,"true")== 0) || (strcmp(variable_value,"false")== 0))
+		if (strcmp(variable_value,"true")== 0)
 		{
-			config->spMinimalGUI = variable_value;
+			config->spMinimalGUI = true;
 			i = 1;
+			return i;
+		}
+		else if (strcmp(variable_value,"false")== 0)
+		{
+			config->spMinimalGUI = false;
+			i = 1;
+			return i;
 		}
 		else
 		{
-			printf("Message: Invalid value - constraint not met");
+			*msg = SP_CONFIG_INVALID_STRING;
+			spRegularErrorPrinter(filename,line,1,DUMMY);
 			spConfigDestroy(config);
 			return 0;
 		}
@@ -340,20 +403,32 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 		}
 		else
 		{
-			printf("Message: Invalid value - constraint not met");
+			*msg = SP_CONFIG_INVALID_INTEGER;
+			spRegularErrorPrinter(filename,line,1,DUMMY);
 			spConfigDestroy(config);
 			return 0;
 		}
 	}
 	else if (! strcmp(variable_name,SP_LOGGER_FILE_NAME))
 	{
-		config->spLoggerFilename = variable_value;
+		free(config->spLoggerFilename);
+		config->spLoggerFilename = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
+		if (!config->spLoggerFilename)
+		{
+		*msg = SP_CONFIG_ALLOC_FAIL;
+		spConfigDestroy(config);
+		return 3;
+		}
+		strcpy(config->spLoggerFilename,variable_value);
 		i = 1;
+		return i;
 	}
 	if (i == 2)
 	{
-		printf("error Message: Invalid configuration line");
-		return i;
+		*msg = SP_CONFIG_INVALID_STRING;
+		spRegularErrorPrinter(filename,line,1,DUMMY);
+		spConfigDestroy(config);
+		return 0;
 	}
 
 	return i;
@@ -365,12 +440,21 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 	int line_counter = 0;
 	char* index_of_equal;
 	char input[MAX_LINE_LENGTH];
+	char* temp_variable;
 	char* variable_name = NULL;
 	char* variable_value = NULL;
-	FILE *file = fopen (filename, "r");
+	if (!filename)
+	{
+		*msg = SP_CONFIG_INVALID_ARGUMENT;
+		printf("%s,%s,%s/n",ERROR_THE_CONFIGURATION_FILE,filename,ERROR_COULD_NOT_OPEN);
+		fflush(NULL);
+		return NULL;
+	}
+	FILE *file = fopen(filenameofek, "r");
 	//deal with error 3 file couldnt open
 	if (!file)
 	{
+		*msg = SP_CONFIG_CANNOT_OPEN_FILE;
 		printf("%s,%s,%s/n",ERROR_THE_CONFIGURATION_FILE,filename,ERROR_COULD_NOT_OPEN);
 		fflush(NULL);
 		return NULL;
@@ -378,6 +462,7 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 	SPConfig config = spConfigInit();
 	if (!config)
 	{
+		*msg = SP_CONFIG_ALLOC_FAIL;
 		fclose(file);
 		return NULL;
 	}
@@ -391,10 +476,14 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 			*index_of_equal= '\0';
 			index_of_equal++;
 		}
+		temp_variable = (char*)malloc((strlen(input) + 1) * sizeof(char));
+		strcpy(temp_variable,input);
 		// if '=' not exist we need to check if its comment line,empty line or an error
-		variable_name = spCleaningString(input,msg,filename,line_counter);
+		variable_name = spCleaningString(temp_variable,msg,filename,line_counter);
+		free(temp_variable);
 		if(variable_name == NULL)
 		{
+
 			spConfigDestroy(config);
 			fclose(file);
 			return NULL;
@@ -425,7 +514,10 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 		}
 		else
 		{
+			temp_variable = (char*)malloc((strlen(index_of_equal) + 1) * sizeof(char));
+			strcpy(temp_variable,index_of_equal);
 			variable_value = spCleaningString(index_of_equal,msg,filename,line_counter);
+			free(temp_variable);
 		}
 
 		if ((variable_value == NULL)||(strcmp(variable_value,SKIP) == 0))
@@ -445,19 +537,46 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 			line_counter++;
 			continue;
 		}
-		succeeded = spAssignArgument(config,variable_name,variable_value,msg);
+		succeeded = spAssignArgument(config, variable_name, variable_value, msg, line_counter, filename);
 		if (succeeded == 1)
 		{
 		line_counter++;
 		}
-		else
+		else if (succeeded == 0)
 		{
+			free(variable_name);
+			free(variable_value);
+			fclose(file);
 			return NULL;
 		}
+		else if (succeeded == 3)
+		{
+		free(variable_name);
+		free(variable_value);
+		fclose(file);
+		return NULL;
+		}
 	}
-
-
-	return NULL;
+	if (!config->spImagesDirectory)
+	{
+		*msg = SP_CONFIG_MISSING_DIR;
+		spRegularErrorPrinter(filename,line_counter,2,SP_IMAGES_DIRECTORY);
+		spConfigDestroy(config);
+		fclose(file);
+		return NULL;
+	}
+	if (!config->spImagesPrefix)
+	{
+		*msg = SP_CONFIG_MISSING_PREFIX;
+		spRegularErrorPrinter(filename,line_counter,2,SP_IMAGES_PREFIX);
+		spConfigDestroy(config);
+		fclose(file);
+		return NULL;
+	}
+	*msg = SP_CONFIG_SUCCESS;
+	printf("success");
+	fflush(NULL);
+	return config;
 }
 
 /*
@@ -473,7 +592,16 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
  */
 bool spConfigIsExtractionMode(const SPConfig config, SP_CONFIG_MSG* msg)
 {
-	return false;
+	assert(msg != NULL);
+	bool result;
+	if (!config)
+	{
+		*msg = SP_CONFIG_INVALID_ARGUMENT;
+		return NULL;
+	}
+	result = config->spExtractionMode;
+	*msg = SP_CONFIG_SUCCESS;
+	return result;
 }
 
 /*
@@ -489,9 +617,17 @@ bool spConfigIsExtractionMode(const SPConfig config, SP_CONFIG_MSG* msg)
  */
 bool spConfigMinimalGui(const SPConfig config, SP_CONFIG_MSG* msg)
 {
-	return false;
+	assert(msg != NULL);
+	bool result;
+	if (!config)
+	{
+		*msg = SP_CONFIG_INVALID_ARGUMENT;
+		return NULL;
+	}
+	result = config->spMinimalGUI;
+	*msg = SP_CONFIG_SUCCESS;
+	return result;
 }
-
 /*
  * Returns the number of images set in the configuration file, i.e the value
  * of spNumOfImages.
@@ -506,7 +642,17 @@ bool spConfigMinimalGui(const SPConfig config, SP_CONFIG_MSG* msg)
  */
 int spConfigGetNumOfImages(const SPConfig config, SP_CONFIG_MSG* msg)
 {
-	return 0;
+
+		assert(msg != NULL);
+		int result;
+		if (!config)
+		{
+			*msg = SP_CONFIG_INVALID_ARGUMENT;
+			return -1;
+		}
+		result = config->spNumOfImages;
+		*msg = SP_CONFIG_SUCCESS;
+		return result;
 }
 /*
  * Returns the number of features to be extracted. i.e the value
@@ -522,7 +668,16 @@ int spConfigGetNumOfImages(const SPConfig config, SP_CONFIG_MSG* msg)
  */
 int spConfigGetNumOfFeatures(const SPConfig config, SP_CONFIG_MSG* msg)
 {
-	return 0;
+	assert(msg != NULL);
+	int result;
+	if (!config)
+	{
+		*msg = SP_CONFIG_INVALID_ARGUMENT;
+		return -1;
+	}
+	result = config->spNumOfFeatures;
+	*msg = SP_CONFIG_SUCCESS;
+	return result;
 }
 
 /**
@@ -538,7 +693,16 @@ int spConfigGetNumOfFeatures(const SPConfig config, SP_CONFIG_MSG* msg)
  */
 int spConfigGetPCADim(const SPConfig config, SP_CONFIG_MSG* msg)
 {
-	return 0;
+	assert(msg != NULL);
+	int result;
+	if (!config)
+	{
+		*msg = SP_CONFIG_INVALID_ARGUMENT;
+		return -1;
+	}
+	result = config->spPCADimension;
+	*msg = SP_CONFIG_SUCCESS;
+	return result;
 }
 
 /**
@@ -566,10 +730,64 @@ int spConfigGetPCADim(const SPConfig config, SP_CONFIG_MSG* msg)
  * - SP_CONFIG_INDEX_OUT_OF_RANGE - if index >= spNumOfImages
  * - SP_CONFIG_SUCCESS - in case of success
  */
+int spConfigHowManyDigits(int n)
+{
+	int count = 0;
+	while(n!=0)
+	    {
+	        n /= 10;             // n = n/10
+	        ++count;
+	    }
+	return count;
+}
 SP_CONFIG_MSG spConfigGetImagePath(char* imagePath, const SPConfig config,
 		int index)
 {
-	return SP_CONFIG_SUCCESS;
+	SP_CONFIG_MSG msg;
+	if ((!config)||(!imagePath))
+	{
+		msg = SP_CONFIG_INVALID_ARGUMENT;
+		return msg;
+	}
+	if (index >= config->spNumOfImages)
+	{
+		msg = SP_CONFIG_INDEX_OUT_OF_RANGE;
+		return msg;
+	}
+	int directory_len = 0;
+	int prefix_len = 0;
+	int suffix_len = 0;
+	int index_len = spConfigHowManyDigits(index);
+	int fullpath_name_len = 0;
+	char* intBuffer;
+	// check numbers set up
+	intBuffer = (char*)malloc((index_len+1) * sizeof(char));
+	if (!intBuffer)
+	{
+		msg = SP_CONFIG_ALLOC_FAIL;
+		return msg;
+	}
+
+	sprintf(intBuffer, "%d", index);
+	directory_len = strlen(config->spImagesDirectory);
+	prefix_len = strlen(config->spImagesPrefix);
+	suffix_len = strlen(config->spImagesSuffix);
+	fullpath_name_len = directory_len + prefix_len + index_len + suffix_len;
+	if (fullpath_name_len <= strlen(imagePath))
+	{
+		sprintf(imagePath, "%s%s%s%s", config->spImagesDirectory, config->spImagesPrefix,
+						intBuffer, config->spImagesSuffix);
+	}
+	else
+	{
+		// TODO: check what to do
+		printf("problem not enough memory in imagepath");
+		msg = SP_CONFIG_ALLOC_FAIL;
+		return msg;
+	}
+	free(intBuffer);
+	msg = SP_CONFIG_SUCCESS;
+	return msg;
 }
 
 /**
@@ -590,17 +808,63 @@ SP_CONFIG_MSG spConfigGetImagePath(char* imagePath, const SPConfig config,
  */
 SP_CONFIG_MSG spConfigGetPCAPath(char* pcaPath, const SPConfig config)
 {
-	return SP_CONFIG_SUCCESS;
+	SP_CONFIG_MSG msg;
+	if ((!config)||(!pcaPath))
+	{
+		msg = SP_CONFIG_INVALID_ARGUMENT;
+		return msg;
+	}
+	int directory_len = 0;
+	int PcaFilename_len = 0;
+	int fullpath_name_len = 0;
+	directory_len = strlen(config->spImagesDirectory);
+	PcaFilename_len = strlen(config->spPCAFilename);
+	fullpath_name_len = directory_len + PcaFilename_len;
+	if (fullpath_name_len <= strlen(pcaPath))
+	{
+		sprintf(pcaPath, "%s%s", config->spImagesDirectory, config->spPCAFilename);
+	}
+	else
+	{
+		// TODO: check what to do
+		printf("problem - not enough memory in pcapath");
+		msg = SP_CONFIG_ALLOC_FAIL;
+		return msg;
+	}
+	msg = SP_CONFIG_SUCCESS;
+	return msg;
 }
 
 /**
  * Frees all memory resources associate with config.
  * If config == NULL nothig is done.
  */
-/*void spConfigDestroy(SPConfig config)
+void spConfigDestroy(SPConfig config)
 {
-	return;
+	if (config)
+	{
+		if (config->spImagesDirectory)
+		{
+			free(config->spImagesDirectory);
+		}
+		if (config->spImagesPrefix)
+		{
+			free(config->spImagesPrefix);
+		}
+		if (config->spImagesSuffix)
+		{
+			free(config->spImagesSuffix);
+		}
+		if (config->spPCAFilename)
+		{
+			free(config->spPCAFilename);
+		}
+		if (config->spLoggerFilename)
+		{
+			free(config->spLoggerFilename);
+		}
+		free (config);
+	}
 }
-*/
 
 
