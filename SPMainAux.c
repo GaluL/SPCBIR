@@ -103,3 +103,16 @@ bool spDeserializeImagesFeatures(SPImage** imagesFeatures, SPConfig config)
 
 	return true;
 }
+
+SPKDTreeNode spCreateKDTreeFromImages(SPImage* imagesFeatures, SPConfig config)
+{
+	SP_CONFIG_MSG configMsg;
+	int i = 0;
+	int numOfAllFeatures = 0;
+	int numOfImages = spConfigGetNumOfImages(config, &configMsg);
+
+	for (i = 0; i < numOfImages; ++i)
+	{
+		numOfAllFeatures += spImageGetNumOfFeature(imagesFeatures[i]);
+	}
+}

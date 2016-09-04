@@ -13,5 +13,6 @@
 typedef struct sp_kdtreenode_t *SPKDTreeNode;
 
 SPKDTreeNode spKDTreeNodeCreate(SPPoint* features, int size, int splitDimension);
+SPKDTreeNode spCreateKDTreeFromImages(SPImage* imagesFeatures);
 
 #endif /* SPKDTREENODE_H_ */

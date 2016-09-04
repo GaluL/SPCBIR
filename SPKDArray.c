@@ -336,3 +336,10 @@ SPKDArray spKDSplittedArrayGetLeft(SPKDSplittedArray kdSplittedArray)
 
 	return kdSplittedArray->kdLeft;
 }
+
+double spKDArrayGetSplitMedian(SPKDArray kdArray, int dimension)
+{
+	return spPointGetAxisCoor(kdArray->points[
+	      kdArray->dimsSortedIndexesMat[dimension][(int)ceil(kdArray->size / 2.0) - 1]],
+			dimension);
+}

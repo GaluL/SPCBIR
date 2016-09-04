@@ -10,10 +10,6 @@
 #include "SPImage.h"
 #include "SPPoint.h"
 
-#define FEATS_FILE_WRITE_MODE "wb"
-#define FEATS_FILE_READ_MODE "rb"
-#define NEW_LINE "\n"
-
 struct sp_image_t {
 	SPPoint* feats;
 	int featsCount;
@@ -161,4 +157,24 @@ void spImageDestroy(SPImage image)
 
 		free(image);
 	}
+}
+
+int spImageGetNumOfFeature(SPImage image)
+{
+	if (!image)
+	{
+		return INVALID_VALUE;
+	}
+
+	return image->featsCount;
+}
+
+SPPoint spImageGetFeature(SPImage image, int index)
+{
+	if (index >= image->featsCount)
+	{
+		return NULL;
+	}
+
+	return image->feats[index];
 }

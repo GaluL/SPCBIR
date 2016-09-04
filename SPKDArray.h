@@ -27,4 +27,6 @@ SPKDArray spKDSplittedArrayGetRight(SPKDSplittedArray kdSplittedArray);
 
 SPKDArray spKDSplittedArrayGetLeft(SPKDSplittedArray kdSplittedArray);
 
+double spKDArrayGetSplitMedian(SPKDArray kdArray, int dimension);
+
 #endif /* SPKDARRAY_H_ */
