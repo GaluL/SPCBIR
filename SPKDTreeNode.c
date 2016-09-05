@@ -193,6 +193,7 @@ SPKDTreeNode spCreateKDTreeFromImages(SPImage* imagesFeatures, SPConfig config)
 	SPPoint* allFeatures = NULL;
 	int currImageNumOfFeatures = 0;
 	int numOfImages = spConfigGetNumOfImages(config, &configMsg);
+	int copiedFeats = 0;
 
 	for (i = 0; i < numOfImages; ++i)
 	{
@@ -211,11 +212,13 @@ SPKDTreeNode spCreateKDTreeFromImages(SPImage* imagesFeatures, SPConfig config)
 
 		for (j = 0; j < currImageNumOfFeatures; ++j)
 		{
-			allFeatures[i + j] = spPointCopy(spImageGetFeature(imagesFeatures[i], j));
-			if (!allFeatures[i + j])
+			allFeatures[copiedFeats] = spPointCopy(spImageGetFeature(imagesFeatures[i], j));
+			if (!allFeatures[copiedFeats])
 			{
 				// TODO: handle
 			}
+
+			copiedFeats++;
 		}
 	}
 
