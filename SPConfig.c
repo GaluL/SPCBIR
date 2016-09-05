@@ -538,7 +538,11 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 			line_counter++;
 			continue;
 		}
-		succeeded = spAssignArgument(config, variable_name, variable_value, msg, line_counter, filename);
+		succeeded = spAssignArgument(config, variable_name, variable_value,
+				msg, line_counter, filename);
+		//	TODO: CHECK WHY CRASH
+		//	free(variable_name);
+		//	free(variable_value);
 		if (succeeded == 1)
 		{
 			//free(variable_name);
@@ -547,8 +551,6 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 		}
 		else if (succeeded == 0)
 		{
-			free(variable_name);
-			free(variable_value);
 			fclose(file);
 			return NULL;
 		}
@@ -560,15 +562,14 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 			return NULL;
 		}
 	}
+	fclose(file);
 	// check all must initiate variables were initiate
 	isDefuatInit = spIsDefaultInitiate(filename, msg, config, line_counter);
 	if (!isDefuatInit)
 	{
-		fclose(file);
 		return NULL;
 	}
 	*msg = SP_CONFIG_SUCCESS;
-	fclose(file);
 	return config;
 }
 
