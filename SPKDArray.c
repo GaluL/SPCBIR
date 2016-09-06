@@ -5,6 +5,7 @@
  *      Author: galkl
  */
 #include <stdlib.h>
+#include <stdio.h>
 #include <stddef.h>
 #include <assert.h>
 #include "SPKDArray.h"
@@ -50,7 +51,7 @@ void sortPointIndexesByDim(SPPoint* points, int pointsCount,int** indexesMat , i
 
 	for (i = 0; i < pointsCount; ++i)
 	{
-		indexesMat[axis][i] = dimCoords[i].index;
+		indexesMat[i][axis] = dimCoords[i].index;
 	}
 
 	free(dimCoords);
@@ -164,16 +165,16 @@ void fillMatFromParent(SPKDArray kdLeft, SPKDArray kdRight, SPKDArray kdParent,
 	{
 		for (j = 0; j < kdParent->size; ++j)
 		{
-			currIndex = kdParent->dimsSortedIndexesMat[i][j];
+			currIndex = kdParent->dimsSortedIndexesMat[j][i];
 
 			if (leftIndexMap[currIndex] != MAP_NOT_EXIST)
 			{
-				kdLeft->dimsSortedIndexesMat[i][leftCurrRowPos] = leftIndexMap[currIndex];
+				kdLeft->dimsSortedIndexesMat[leftCurrRowPos][i] = leftIndexMap[currIndex];
 				leftCurrRowPos++;
 			}
 			else
 			{
-				kdRight->dimsSortedIndexesMat[i][rightCurrRowPos] = rightIndexMap[currIndex];
+				kdRight->dimsSortedIndexesMat[rightCurrRowPos][i] = rightIndexMap[currIndex];
 				rightCurrRowPos++;
 			}
 		}
@@ -183,7 +184,7 @@ void fillMatFromParent(SPKDArray kdLeft, SPKDArray kdRight, SPKDArray kdParent,
 	}
 }
 
-SPKDSplittedArray spKDArraySplit(SPKDArray kdArr, int axis)
+SPKDSplittedArray spKDArraySplit(SPKDArray kdArr, int axis, double* splitMedian)
 {
 	SPKDSplittedArray result = NULL;
 	SPKDArray kdLeft = NULL;
@@ -251,15 +252,18 @@ SPKDSplittedArray spKDArraySplit(SPKDArray kdArr, int axis)
 
 	for (i = 0; i < kdArr->size; ++i)
 	{
-		pointIndex = kdArr->dimsSortedIndexesMat[axis][i];
+		pointIndex = kdArr->dimsSortedIndexesMat[i][axis];
 
 		indexMapToSide[pointIndex] = (i < kdLeft->size) ? 0 : 1;
+
+		if (i == kdLeft->size - 1 && splitMedian)
+		{
+			*splitMedian = spPointGetAxisCoor(kdArr->points[pointIndex], axis);
+		}
 	}
 
 	for (i = 0; i < kdArr->size; ++i)
 	{
-		printf("%d\n",i);
-		fflush(NULL);
 		currPoint = spPointCopy(kdArr->points[i]);
 		if (!currPoint)
 		{
@@ -339,17 +343,9 @@ SPKDArray spKDSplittedArrayGetLeft(SPKDSplittedArray kdSplittedArray)
 	return kdSplittedArray->kdLeft;
 }
 
-double spKDArrayGetSplitMedian(SPKDArray kdArray, int dimension)
-{
-	return spPointGetAxisCoor(kdArray->points[
-	      kdArray->dimsSortedIndexesMat[dimension][(int)ceil(kdArray->size / 2.0) - 1]],
-			dimension);
-}
-
 int spKDSArrayGetMaxSpreadDimension(SPKDArray kdArray)
 {
 	int i = 0;
-	int j = 0;
 	int maxSpreadDim = INVALID_VALUE;
 	double maxSpread = 0;
 	double currDimSpread = 0;
@@ -361,8 +357,8 @@ int spKDSArrayGetMaxSpreadDimension(SPKDArray kdArray)
 
 	for (i = 0; i < spPointGetDimension(kdArray->points[0]); ++i)
 	{
-		currDimSpread = kdArray->dimsSortedIndexesMat[i][kdArray->size] -
-				kdArray->dimsSortedIndexesMat[i][0];
+		currDimSpread = spPointGetAxisCoor(kdArray->points[kdArray->dimsSortedIndexesMat[kdArray->size - 1][i]], i) -
+				spPointGetAxisCoor(kdArray->points[kdArray->dimsSortedIndexesMat[0][i]], i);
 
 		if (currDimSpread > maxSpread)
 		{

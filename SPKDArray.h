@@ -27,13 +27,11 @@ typedef struct sp_kdsplittedarray_t *SPKDSplittedArray;
 
 SPKDArray spKDArrayInit(SPPoint* arr, int size);
 
-SPKDSplittedArray spKDArraySplit(SPKDArray kdArr, int axis);
+SPKDSplittedArray spKDArraySplit(SPKDArray kdArr, int axis, double* splitMedian);
 
 int spKDArrayGetSize(SPKDArray kdArr);
 
 SPPoint spKDArrayGetPoint(SPKDArray kdArr, int index);
-
-double spKDArrayGetSplitMedian(SPKDArray kdArray, int dimension);
 
 int spKDSArrayGetMaxSpreadDimension(SPKDArray kdArray);
 

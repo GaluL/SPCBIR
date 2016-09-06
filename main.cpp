@@ -58,6 +58,8 @@ void UnitTest()
 	SPPoint* pointsArr = (SPPoint*)malloc(5 * sizeof(SPPoint));
 	SPImage image;
 
+	double median = -1;
+
 	double coords0[2] = {1, 2};
 	pointsArr[0] = spPointCreate(coords0, 2, 0);
 
@@ -77,6 +79,9 @@ void UnitTest()
 	spImageSaveToFeats(image, "testImage.feat");
 	image = spImageCreateFromFeats("testImage.feat");
 
+	SPKDArray kdArr = spKDArrayInit(pointsArr, 5);
+	spKDArraySplit(kdArr, 0, &median);
+
 	if (image)
 	{
 		return;
@@ -93,6 +98,8 @@ int main(int argc, char** argv)
 	SPImage* imagesFeatures = NULL;
 	SPLogger logger = NULL;
 	bool extractMode = false;
+
+	//UnitTest();
 
 	if (!configFileName)
 	{
@@ -132,6 +139,12 @@ int main(int argc, char** argv)
 		}
 
 		SPKDTreeNode tree = spCreateKDTreeFromImages(imagesFeatures, config);
+
+		if (tree)
+		{
+			printf("Great Success");
+			fflush(NULL);
+		}
 	}
 
 	return 0;
