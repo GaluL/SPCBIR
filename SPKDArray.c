@@ -258,6 +258,8 @@ SPKDSplittedArray spKDArraySplit(SPKDArray kdArr, int axis)
 
 	for (i = 0; i < kdArr->size; ++i)
 	{
+		printf("%d\n",i);
+		fflush(NULL);
 		currPoint = spPointCopy(kdArr->points[i]);
 		if (!currPoint)
 		{

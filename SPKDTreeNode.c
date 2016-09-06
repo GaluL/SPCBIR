@@ -116,7 +116,7 @@ SPKDTreeNode spKDTreeNodeCreate(SPPoint* features, int size, SPConfig config)
 		// TODO: handle
 	}
 
-	return createKDTreeFromKDArray(kdArray, config, INVALID_VALUE);
+	return createKDTreeFromKDArray(kdArray,  INVALID_VALUE, config);
 }
 
 bool SPKDTreeNodeIsLeaf(SPKDTreeNode node)

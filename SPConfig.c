@@ -82,10 +82,11 @@ SPConfig spConfigInit()
  */
 void spRegularErrorPrinter(const char* filename, int line,int ErrorTypeNum, char* paramterName)
 {
+	// An array the hold the key word for the error array[0]
 	char * errorArray[] = {ERROR_INVALID_CONFIGURATION_LINE,ERROR_INVALID_VALUE,
 			 ERROR_PARAMTER,ERROR_IS_NOT_SET};
 
-	if (ErrorTypeNum != 2)
+	if (ErrorTypeNum != ERROR_ARRAY_TYPE_PARAMTER_NOT_SET)
 	{
 		printf("%s%s\n%s%d\n%s%s\n",ERROR_FILE, filename, ERROR_LINE, line, ERROR_MASSAGE,
 				 errorArray[ErrorTypeNum]);
@@ -94,7 +95,7 @@ void spRegularErrorPrinter(const char* filename, int line,int ErrorTypeNum, char
 	else
 	{
 		printf("%s%s\n%s%d\n%s%s%s%s\n", ERROR_FILE, filename, ERROR_LINE, line,
-				 ERROR_MASSAGE,errorArray[ErrorTypeNum],paramterName,errorArray[+1]);
+				 ERROR_MASSAGE,errorArray[ErrorTypeNum],paramterName,errorArray[ErrorTypeNum+1]);
 		fflush(NULL);
 	}
 
@@ -223,7 +224,7 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 		else
 		{
 			*msg = SP_CONFIG_INVALID_STRING;
-			spRegularErrorPrinter(filename,line,1,DUMMY);
+			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
 			spConfigDestroy(config);
 			return 0;
 		}
@@ -256,7 +257,7 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 		else
 		{
 			*msg = SP_CONFIG_INVALID_INTEGER;
-			spRegularErrorPrinter(filename,line,1,DUMMY);
+			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
 			spConfigDestroy(config);
 			return 0;
 		}
@@ -285,7 +286,7 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 		else
 		{
 			*msg = SP_CONFIG_INVALID_INTEGER;
-			spRegularErrorPrinter(filename,line,1,DUMMY);
+			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
 			spConfigDestroy(config);
 			return 0;
 		}
@@ -308,7 +309,7 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 		else
 		{
 			*msg = SP_CONFIG_INVALID_STRING;
-			spRegularErrorPrinter(filename,line,1,DUMMY);
+			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
 			spConfigDestroy(config);
 			return 0;
 		}
@@ -324,7 +325,7 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 		else
 		{
 			*msg = SP_CONFIG_INVALID_INTEGER;
-			spRegularErrorPrinter(filename,line,1,DUMMY);
+			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
 			spConfigDestroy(config);
 			return 0;
 		}
@@ -350,7 +351,7 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 		else
 		{
 			*msg = SP_CONFIG_INVALID_STRING;
-			spRegularErrorPrinter(filename,line,1,DUMMY);
+			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
 			spConfigDestroy(config);
 			return 0;
 		}
@@ -366,7 +367,7 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 		else
 		{
 			*msg = SP_CONFIG_INVALID_INTEGER;
-			spRegularErrorPrinter(filename,line,1,DUMMY);
+			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
 			spConfigDestroy(config);
 			return 0;
 		}
@@ -388,7 +389,7 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 		else
 		{
 			*msg = SP_CONFIG_INVALID_STRING;
-			spRegularErrorPrinter(filename,line,1,DUMMY);
+			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
 			spConfigDestroy(config);
 			return 0;
 		}
@@ -404,7 +405,7 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 		else
 		{
 			*msg = SP_CONFIG_INVALID_INTEGER;
-			spRegularErrorPrinter(filename,line,1,DUMMY);
+			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
 			spConfigDestroy(config);
 			return 0;
 		}
@@ -426,7 +427,7 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 	if (i == 2)
 	{
 		*msg = SP_CONFIG_INVALID_STRING;
-		spRegularErrorPrinter(filename,line,1,DUMMY);
+		spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_INVALID_CONFIGURATION_LINE,DUMMY);
 		spConfigDestroy(config);
 		return 0;
 	}
@@ -538,28 +539,29 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 			line_counter++;
 			continue;
 		}
+		/*
+		 * Check if we succeeded to assign the argument :
+		 * 0-> if constraint not met
+		 * 1-> if succeeded
+		 * 2-> if the variable name is not one of the config fields
+		 * 3-> if memory allocate fail
+		 *
+		 *
+		 */
 		succeeded = spAssignArgument(config, variable_name, variable_value,
 				msg, line_counter, filename);
 		//	TODO: CHECK WHY CRASH
 		//	free(variable_name);
 		//	free(variable_value);
-		if (succeeded == 1)
+		if (succeeded != 1)
 		{
-			//free(variable_name);
-			//free(variable_value);
+			fclose(file);
+			return NULL;
+
+		}
+		else
+		{
 			line_counter++;
-		}
-		else if (succeeded == 0)
-		{
-			fclose(file);
-			return NULL;
-		}
-		else if (succeeded == 3)
-		{
-			free(variable_name);
-			free(variable_value);
-			fclose(file);
-			return NULL;
 		}
 	}
 	fclose(file);
@@ -896,6 +898,8 @@ int spConfigGetNumOfSimilarImage (const SPConfig config, SP_CONFIG_MSG* msg)
 SP_KDTREE_SPLIT_METHOD spConfigGetspKDTreeSplitMethod (const SPConfig config, SP_CONFIG_MSG* msg)
 {
 	assert(msg != NULL);
+	int test;
+	test = config->spNumOfFeatures;
 		if (!config)
 		{
 			*msg = SP_CONFIG_INVALID_ARGUMENT;

@@ -9,6 +9,14 @@
 #define SPKDARRAY_H_
 
 #include "SPPoint.h"
+#include <stdio.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <assert.h>
+#include <math.h>
+
 
 #define INVALID_VALUE -1
 
