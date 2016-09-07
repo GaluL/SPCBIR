@@ -892,7 +892,7 @@ int spConfigGetNumOfSimilarImage (const SPConfig config, SP_CONFIG_MSG* msg)
 			return -1;
 		}
 		*msg = SP_CONFIG_SUCCESS;
-		return config->spNumOfImages;
+		return config->spNumOfSimilarImages;
 }
 
 SP_KDTREE_SPLIT_METHOD spConfigGetspKDTreeSplitMethod (const SPConfig config, SP_CONFIG_MSG* msg)

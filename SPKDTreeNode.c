@@ -134,8 +134,9 @@ void spKDTreeNodeKNNSearch(SPKDTreeNode curr , SPBPQueue bpq, SPPoint testPoint)
 	* point is not as good as the points we've seen so far.*/
 	if (SPKDTreeNodeIsLeaf(curr))
 	{
-		elementToAdd = spListElementCreate(
-				spPointGetIndex(curr->Data), spPointL2SquaredDistance(curr->Data, testPoint));
+		int index = spPointGetIndex(curr->Data);
+		double distance = spPointL2SquaredDistance(curr->Data, testPoint);
+		elementToAdd = spListElementCreate(index, distance);
 
 		if (!elementToAdd)
 		{
@@ -169,13 +170,13 @@ void spKDTreeNodeKNNSearch(SPKDTreeNode curr , SPBPQueue bpq, SPPoint testPoint)
 		//recursively search the other subtree on the next axis
 		if (lastStep)
 		{
-			// If we searched the left subtree - go to the right to fill the missing value
-			spKDTreeNodeKNNSearch(curr->Right, bpq, testPoint);
+			// If we searched the right subtree - go to the left to fill the missing value
+			spKDTreeNodeKNNSearch(curr->Left, bpq, testPoint);
 		}
 		else
 		{
 			// The opposite
-			spKDTreeNodeKNNSearch(curr->Left, bpq, testPoint);
+			spKDTreeNodeKNNSearch(curr->Right, bpq, testPoint);
 		}
 	}
 }
