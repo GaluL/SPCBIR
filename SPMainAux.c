@@ -5,6 +5,7 @@
  *      Author: galkl
  */
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
 #include "SPMainAux.h"
@@ -12,6 +13,7 @@
 
 #define CONFIG_ARGUMENT_FLAG "-c"
 #define DEFAULT_CONFIG_FILE "spcbir.config"
+#define QUERY_IMAGE_PROMPT "Please enter query image path\n"
 
 char* spGetConfigFileName(int argc, char** argv)
 {
@@ -92,7 +94,7 @@ bool spDeserializeImagesFeatures(SPImage** imagesFeatures, SPConfig config)
 		// TODO: handle failure
 		 configMsg = spConfigGetImageFeatsPath(imageFeatsPath, config, i);
 
-		 (*imagesFeatures)[i] = spImageCreateFromFeats(imageFeatsPath);
+		 (*imagesFeatures)[i] = spImageCreateFromFeats(imageFeatsPath, i);
 		 if (!(*imagesFeatures)[i])
 		 {
 			 // TODO: handle
@@ -103,4 +105,61 @@ bool spDeserializeImagesFeatures(SPImage** imagesFeatures, SPConfig config)
 	free(imageFeatsPath);
 
 	return true;
+}
+
+char** spGetSimilarImagesPathes(SPConfig config, SPImage queryImage, SPKDTreeNode imagesDB)
+{
+	int i = 0;
+	SPBPQueue topMatchQueue = NULL;
+	int* occurencesArr = NULL;
+	int numOfImages = 0;
+	int spKNN = 0;
+	int numOfSimilarImages = 0;
+	SP_CONFIG_MSG configMsg;
+	SPListElement indexAndDistance = NULL;
+
+	// TODO: handle config msgs
+	numOfImages = spConfigGetNumOfImages(config, &configMsg);
+	numOfSimilarImages = spConfigGetNumOfSimilarImage(config, &configMsg);
+	spKNN = spConfigGetKNN(config, &configMsg);
+
+	topMatchQueue = spBPQueueCreate(spKNN);
+	if (!topMatchQueue)
+	{
+		return NULL;
+	}
+
+	occurencesArr = (int*)malloc(sizeof(int) * numOfImages);
+	if (!occurencesArr)
+	{
+		spBPQueueDestroy(topMatchQueue);
+		return NULL;
+	}
+
+	for (i = 0; i < numOfImages; ++i)
+	{
+		occurencesArr[i] = 0;
+	}
+
+	int queryNumOfFeatures = spImageGetNumOfFeature(queryImage);
+	for (i = 0; i < queryNumOfFeatures; ++i)
+	{
+		spKDTreeNodeKNNSearch(imagesDB, topMatchQueue, spImageGetFeature(queryImage, i));
+
+		while(!spBPQueueIsEmpty(topMatchQueue))
+		{
+			indexAndDistance = spBPQueuePeek(topMatchQueue);
+			spBPQueueDequeue(topMatchQueue);
+
+			occurencesArr[spListElementGetIndex(indexAndDistance)]++;
+		}
+	}
+
+	for (i =0; i < numOfImages; ++i)
+	{
+		printf("%d, ", occurencesArr[i]);
+		fflush(NULL);
+	}
+
+	return NULL;
 }

@@ -121,7 +121,7 @@ bool SPKDTreeNodeIsLeaf(SPKDTreeNode node)
 	return (node->Left == NULL && node->Right == NULL) ? true : false;
 }
 
-void KNNSearch(SPKDTreeNode curr , SPBPQueue bpq, SPPoint testPoint)
+void spKDTreeNodeKNNSearch(SPKDTreeNode curr , SPBPQueue bpq, SPPoint testPoint)
 {
 	SPListElement elementToAdd = NULL;
 	int lastStep = 0;
@@ -150,13 +150,13 @@ void KNNSearch(SPKDTreeNode curr , SPBPQueue bpq, SPPoint testPoint)
 	/* Recursively search the half of the tree that contains the test point. */
 	if(spPointGetAxisCoor(testPoint, curr->Dim) <= curr->Val)
 	{
-		KNNSearch(curr->Left, bpq, testPoint);
+		spKDTreeNodeKNNSearch(curr->Left, bpq, testPoint);
 
 		lastStep = 0;
 	}
 	else
 	{
-		KNNSearch(curr->Right, bpq, testPoint);
+		spKDTreeNodeKNNSearch(curr->Right, bpq, testPoint);
 
 		lastStep = 1;
 	}
@@ -170,12 +170,12 @@ void KNNSearch(SPKDTreeNode curr , SPBPQueue bpq, SPPoint testPoint)
 		if (lastStep)
 		{
 			// If we searched the left subtree - go to the right to fill the missing value
-			KNNSearch(curr->Right, bpq, testPoint);
+			spKDTreeNodeKNNSearch(curr->Right, bpq, testPoint);
 		}
 		else
 		{
 			// The opposite
-			KNNSearch(curr->Left, bpq, testPoint);
+			spKDTreeNodeKNNSearch(curr->Left, bpq, testPoint);
 		}
 	}
 }

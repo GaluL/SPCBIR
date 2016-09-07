@@ -18,13 +18,24 @@ extern "C"
 #include "SPKDTreeNode.h"
 }
 
+SPImage extractImageFeatures(const SPConfig config, sp::ImageProc* imgProc, const char* imagePath, int index)
+{
+	SPPoint* features = NULL;
+	int featuresExtracted = 0;
+
+	features = imgProc->getImageFeatures(imagePath, index, &featuresExtracted);
+	if (!features)
+	{
+		return NULL;
+	}
+
+	return spImageCreateFromImg(features, featuresExtracted);
+}
+
 SPImage* extractImagesFeatures(const SPConfig config, sp::ImageProc* imgProc, int numOfImages)
 {
 	SPImage* imagesFeatures = NULL;
-	SPPoint* features = NULL;
-	SP_CONFIG_MSG configMsg;
 	int i = 0;
-	int featuresExtracted = 0;
 	char* imagePath = (char*)malloc((MAX_FILE_PATH_LEN + 1) * sizeof(char));
 	if (!imagePath)
 	{
@@ -40,8 +51,7 @@ SPImage* extractImagesFeatures(const SPConfig config, sp::ImageProc* imgProc, in
 	for (i = 0; i < numOfImages; ++i)
 	{
 		spConfigGetImagePath(imagePath, config, i);
-		features = imgProc->getImageFeatures(imagePath, i, &featuresExtracted);
-		imagesFeatures[i] = spImageCreateFromImg(features, featuresExtracted);
+		imagesFeatures[i] = extractImageFeatures(config, imgProc, imagePath, i);
 		if (!imagesFeatures)
 		{
 			// TODO: handle
@@ -77,7 +87,7 @@ void UnitTest()
 
 	image = spImageCreateFromImg(pointsArr, 5);
 	spImageSaveToFeats(image, "testImage.feat");
-	image = spImageCreateFromFeats("testImage.feat");
+	//image = spImageCreateFromFeats("testImage.feat");
 
 	SPKDArray kdArr = spKDArrayInit(pointsArr, 5);
 	spKDArraySplit(kdArr, 0, &median);
@@ -142,8 +152,8 @@ int main(int argc, char** argv)
 
 		if (tree)
 		{
-			printf("Great Success");
-			fflush(NULL);
+			SPImage query = extractImageFeatures(config, imgProc, "queryA.png", 666);
+			spGetSimilarImagesPathes(config, query, tree);
 		}
 	}
 

@@ -7,6 +7,7 @@
 #include "SPPoint.h"
 #include "SPImage.h"
 #include "SPConfig.h"
+#include "SPBPriorityQueue.h"
 
 
 #ifndef SPKDTREENODE_H_
@@ -16,5 +17,6 @@ typedef struct sp_kdtreenode_t *SPKDTreeNode;
 
 SPKDTreeNode spKDTreeNodeCreate(SPPoint* features, int size, SPConfig config);
 SPKDTreeNode spCreateKDTreeFromImages(SPImage* imagesFeatures, SPConfig config);
+void spKDTreeNodeKNNSearch(SPKDTreeNode curr , SPBPQueue bpq, SPPoint testPoint);
 
 #endif /* SPKDTREENODE_H_ */

@@ -30,7 +30,7 @@ SPImage spImageCreateFromImg(SPPoint* feats, int featsCount)
 	return result;
 }
 
-SPImage spImageCreateFromFeats(const char* featsFileName)
+SPImage spImageCreateFromFeats(const char* featsFileName, int imgIndex)
 {
 	FILE *fp;
 	SPImage res = NULL;
@@ -87,7 +87,7 @@ SPImage spImageCreateFromFeats(const char* featsFileName)
 			}
 		}
 
-		res->feats[i] = spPointCreate(currPointCoords, currPointDim, i);
+		res->feats[i] = spPointCreate(currPointCoords, currPointDim, imgIndex);
 
 		if (currPointCoords)
 		{

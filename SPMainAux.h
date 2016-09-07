@@ -9,11 +9,13 @@
 
 #include "SPImage.h"
 #include "SPConfig.h"
+#include "SPKDTreeNode.h"
 
 #define MAX_FILE_PATH_LEN 1024
 
 char* spGetConfigFileName(int argc, char** argv);
 bool spSerializeImagesFeatures(SPImage* imagesFeatures, SPConfig config);
 bool spDeserializeImagesFeatures(SPImage** imagesFeatures, SPConfig config);
+char** spGetSimilarImagesPathes(SPConfig config, SPImage queryImage, SPKDTreeNode imagesDB);
 
 #endif /* SPMAINAUX_H_ */
