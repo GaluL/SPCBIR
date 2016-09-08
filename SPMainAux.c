@@ -11,9 +11,7 @@
 #include "SPMainAux.h"
 #include "SPKDTreeNode.h"
 
-#define CONFIG_ARGUMENT_FLAG "-c"
-#define DEFAULT_CONFIG_FILE "spcbir.config"
-#define QUERY_IMAGE_PROMPT "Please enter query image path\n"
+
 
 char* spGetConfigFileName(int argc, char** argv)
 {
@@ -27,6 +25,7 @@ char* spGetConfigFileName(int argc, char** argv)
 		{
 			return argv[i + 1];
 		}
+
 	}
 
 	defaultFile = (char*)malloc((strlen(DEFAULT_CONFIG_FILE) + 1) * sizeof(char));
@@ -118,6 +117,7 @@ char** spGetSimilarImagesPathes(SPConfig config, SPImage queryImage, SPKDTreeNod
 	SP_CONFIG_MSG configMsg;
 	SPListElement indexAndDistance = NULL;
 
+
 	// TODO: handle config msgs
 	numOfImages = spConfigGetNumOfImages(config, &configMsg);
 	numOfSimilarImages = spConfigGetNumOfSimilarImage(config, &configMsg);
@@ -162,4 +162,28 @@ char** spGetSimilarImagesPathes(SPConfig config, SPImage queryImage, SPKDTreeNod
 	}
 
 	return NULL;
+}
+void flushed_printf(const char* str)
+{
+	printf("%s", str);
+	fflush(NULL);
+}
+
+char* flushed_gets()
+{
+	char input[MAX_INPUT_LENGTH];
+	char* result = NULL;
+
+	fgets(input, sizeof(input), stdin);
+	fflush(NULL);
+
+	strtok(input, "\n");
+
+	result = (char*)malloc((strlen(input) + 1) * sizeof(char));
+	if (result)
+	{
+		strcpy(result, input);
+	}
+
+	return result;
 }

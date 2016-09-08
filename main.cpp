@@ -100,6 +100,7 @@ void UnitTest()
 
 int main(int argc, char** argv)
 {
+	bool terminate = false;
 	SPConfig config = NULL;
 	SP_CONFIG_MSG configMsg;
 	char* configFileName = spGetConfigFileName(argc, argv);
@@ -108,8 +109,11 @@ int main(int argc, char** argv)
 	SPImage* imagesFeatures = NULL;
 	SPLogger logger = NULL;
 	bool extractMode = false;
+	char* queryPath = NULL;
+	SPKDTreeNode tree = NULL;
 
 	//UnitTest();
+
 
 	if (!configFileName)
 	{
@@ -157,5 +161,27 @@ int main(int argc, char** argv)
 		}
 	}
 
+	while (!terminate)
+	{
+		flushed_printf(QUERY_IMAGE_PROMPT);
+		queryPath = flushed_gets();
+		if (strcmp(TERMINATION_SIGN, queryPath) != 0)
+		{
+			if (tree)
+
+			{
+				// WHAY IS 666???
+				SPImage query = extractImageFeatures(config, imgProc, queryPath, 666);
+				spGetSimilarImagesPathes(config, query, tree);
+			}
+		}
+
+		else
+		{
+			//TODO: DESTROY ALL MEMORY;
+			flushed_printf(MSG_EXIT);
+			terminate = true;
+		}
+	}
 	return 0;
 }
