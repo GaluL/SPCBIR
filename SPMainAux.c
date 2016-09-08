@@ -18,16 +18,24 @@ char* spGetConfigFileName(int argc, char** argv)
 	char* defaultFile = NULL;
 
 	int i = 0;
-
+	bool isUserEntered = true;
 	for (i = 0; i < argc; ++i)
 	{
 		if ((strcmp(argv[i], CONFIG_ARGUMENT_FLAG) == 0) && (i + 1 < argc))
 		{
+
 			return argv[i + 1];
 		}
-
+		isUserEntered = false;
 	}
-
+	// user entered invalid command line
+	if (!isUserEntered)
+	{
+		printf("%s", ERROR_INVALID_COMAND_LINE);
+		fflush(NULL);
+		return NULL;
+	}
+	// user didn't entered command line - defauly will be chosen
 	defaultFile = (char*)malloc((strlen(DEFAULT_CONFIG_FILE) + 1) * sizeof(char));
 	if (!sprintf("%s", DEFAULT_CONFIG_FILE))
 	{
@@ -203,7 +211,11 @@ void flushed_printf(const char* str)
 	printf("%s", str);
 	fflush(NULL);
 }
-
+void flushed_printf_newline(const char* str)
+{
+	printf("%s\n", str);
+	fflush(NULL);
+}
 char* flushed_gets()
 {
 	char input[MAX_INPUT_LENGTH];

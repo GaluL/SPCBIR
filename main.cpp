@@ -111,13 +111,24 @@ int main(int argc, char** argv)
 	bool extractMode = false;
 	char* queryPath = NULL;
 	SPKDTreeNode tree = NULL;
+	char** SimilarImagesPathes = NULL;
+	int i = 0;
 
 	//UnitTest();
 
 
 	if (!configFileName)
 	{
-		// TODO: handle
+		if (strcmp(configFileName,DEFAULT_CONFIG_FILE) == 0)
+		{
+			flushed_printf(ERROR_SPCBIR_NOT_OPEN);
+		}
+		else
+		{
+			flushed_printf(ERROR_THE_CONFIGURATION);
+			flushed_printf(configFileName);
+			flushed_printf(ERROR_COULD_NOT_OPEN);
+		}
 		return 0;
 	}
 
@@ -138,7 +149,7 @@ int main(int argc, char** argv)
 			{
 				//TODO: handle
 			}
-
+			// TO DO : WHY THIS WITHOUT & AND NEXT CALL IS WITH &
 			if (!spSerializeImagesFeatures(imagesFeatures, config))
 			{
 				return -1;
@@ -153,12 +164,6 @@ int main(int argc, char** argv)
 		}
 
 		SPKDTreeNode tree = spCreateKDTreeFromImages(imagesFeatures, config);
-
-		if (tree)
-		{
-			SPImage query = extractImageFeatures(config, imgProc, "queryA.png", 666);
-			spGetSimilarImagesPathes(config, query, tree);
-		}
 	}
 
 	while (!terminate)
@@ -167,13 +172,29 @@ int main(int argc, char** argv)
 		queryPath = flushed_gets();
 		if (strcmp(TERMINATION_SIGN, queryPath) != 0)
 		{
-			if (tree)
+		//	if (tree)
 
-			{
+		//	{
 				// WHAY IS 666???
 				SPImage query = extractImageFeatures(config, imgProc, queryPath, 666);
-				spGetSimilarImagesPathes(config, query, tree);
-			}
+				SimilarImagesPathes = spGetSimilarImagesPathes(config, query, tree);
+				if (spConfigMinimalGui(config,&configMsg))
+				{
+					for (i = 0; i < spConfigGetNumOfImages(config, &configMsg) ; i++)
+					{
+						imgProc->showImage(SimilarImagesPathes[i]);
+					}
+				}
+				else
+					flushed_printf(BEST_CANDIDATES);
+					flushed_printf(queryPath);
+					flushed_printf(ARE);
+				for (i = 0; i < spConfigGetNumOfImages(config, &configMsg) ; i++)
+				{
+					flushed_printf_newline(SimilarImagesPathes[i]);
+				}
+
+		//	}
 		}
 
 		else

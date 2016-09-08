@@ -775,7 +775,9 @@ SP_CONFIG_MSG spConfigGetImageCombPath(char* imagePath, const SPConfig config,
 	if (!sprintf(imagePath, "%s%s%s%s", config->spImagesDirectory, config->spImagesPrefix,
 						intBuffer, suffix))
 	{
-		// TODO: handle
+		// TODO: CHECK IF ITS THE RIGHT HANDLE
+		msg = SP_CONFIG_ALLOC_FAIL;
+		return msg;
 	}
 
 	free(intBuffer);
@@ -812,7 +814,9 @@ SP_CONFIG_MSG spConfigGetPCAPath(char* pcaPath, const SPConfig config)
 
 	if (!sprintf(pcaPath, "%s%s", config->spImagesDirectory, config->spPCAFilename))
 	{
-		// TODO: handle
+		// TODO: CHECK IF ITS THE RIGHT HANDLE
+		msg = SP_CONFIG_ALLOC_FAIL;
+		return msg;
 	}
 
 	msg = SP_CONFIG_SUCCESS;
@@ -898,8 +902,7 @@ int spConfigGetNumOfSimilarImage (const SPConfig config, SP_CONFIG_MSG* msg)
 SP_KDTREE_SPLIT_METHOD spConfigGetspKDTreeSplitMethod (const SPConfig config, SP_CONFIG_MSG* msg)
 {
 	assert(msg != NULL);
-	int test;
-	test = config->spNumOfFeatures;
+
 		if (!config)
 		{
 			*msg = SP_CONFIG_INVALID_ARGUMENT;
@@ -945,9 +948,9 @@ SP_CONFIG_MSG spConfigGetLoggerFilename(char* loggerFileName, const SPConfig con
 		}
 
 		if (!sprintf(loggerFileName, "%s", config->spLoggerFilename))
-		{
-			// TODO: handle
-		}
+			// TODO: CHECK IF ITS THE RIGHT HANDLE
+			msg = SP_CONFIG_ALLOC_FAIL;
+			return msg;
 
 		msg = SP_CONFIG_SUCCESS;
 		return msg;

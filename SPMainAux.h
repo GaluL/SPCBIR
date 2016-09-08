@@ -21,6 +21,8 @@
 #define DEFAULT_CONFIG_FILE "spcbir.config"
 #define QUERY_IMAGE_PROMPT "Please enter query image path\n"
 #define TERMINATION_SIGN "<>"
+#define BEST_CANDIDATES "“Best candidates for - "
+#define ARE "are:\n"
 
 #define MAX_INPUT_LENGTH 1024
 
@@ -29,6 +31,7 @@ bool spSerializeImagesFeatures(SPImage* imagesFeatures, SPConfig config);
 bool spDeserializeImagesFeatures(SPImage** imagesFeatures, SPConfig config);
 char** spGetSimilarImagesPathes(SPConfig config, SPImage queryImage, SPKDTreeNode imagesDB);
 void flushed_printf(const char* str);
+void flushed_printf_newline(const char* str);
 char* flushed_gets();
 
 #endif /* SPMAINAUX_H_ */

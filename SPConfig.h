@@ -240,13 +240,75 @@ SP_CONFIG_MSG spConfigGetPCAPath(char* pcaPath, const SPConfig config);
  */
 void spConfigDestroy(SPConfig config);
 
+/*
+ * Returns Num Of Similar Image.
+ *
+ * @param config - the configuration structure
+ * @assert msg != NULL
+ * @param msg - pointer in which the msg returned by the function is stored
+ * @return integer represent Num Of Similar Image
+ * @return -1 in case of invalid argument
+ *
+ * - SP_CONFIG_INVALID_ARGUMENT - if config == NULL
+ * - SP_CONFIG_SUCCESS - in case of success
+ */
 int spConfigGetNumOfSimilarImage (const SPConfig config,SP_CONFIG_MSG* msg);
 
+/*
+ * Returns split method.
+ *
+ * @param config - the configuration structure
+ * @assert msg != NULL
+ * @param msg - pointer in which the msg returned by the function is stored
+ * @return enum represent the split method.
+ * @return -1 in case of invalid argument
+ *
+ * - SP_CONFIG_INVALID_ARGUMENT - if config == NULL
+ * - SP_CONFIG_SUCCESS - in case of success
+ */
 SP_KDTREE_SPLIT_METHOD spConfigGetspKDTreeSplitMethod (const SPConfig config, SP_CONFIG_MSG* msg);
 
+/*
+ * Returns the k nearest neighbors.
+ *
+ * @param config - the configuration structure
+ * @assert msg != NULL
+ * @param msg - pointer in which the msg returned by the function is stored
+ * @return integer represent the k nearest neighbors.
+ * @return -1 in case of invalid argument
+ *
+ * - SP_CONFIG_INVALID_ARGUMENT - if config == NULL
+ * - SP_CONFIG_SUCCESS - in case of success
+ */
 int spConfigGetKNN (const SPConfig config, SP_CONFIG_MSG* msg);
 
+/*
+ * Returns the logger level.
+ *
+ * @param config - the configuration structure
+ * @assert msg != NULL
+ * @param msg - pointer in which the msg returned by the function is stored
+ * @return integer represent logger level.
+ * @return -1 in case of invalid argument
+ *
+ * - SP_CONFIG_INVALID_ARGUMENT - if config == NULL
+ * - SP_CONFIG_SUCCESS - in case of success
+ */
 int spConfigLoggerLevel (const SPConfig config, SP_CONFIG_MSG* msg);
+
+/**
+ * The function stores in loggerFileName the full path of the logger file.
+ *
+ * Thus the address given by pcaPath must contain enough space to
+ * store the resulting string.
+ *
+ * @param loggerfilename - an address to store the result in, it must contain enough space.
+ * @param config - the configuration structure
+ * @return
+ *  - SP_CONFIG_INVALID_ARGUMENT - if imagePath == NULL or config == NULL
+ *  - SP_CONFIG_ALLOC_FAIL - if allocation failure occurred
+ *  - SP_CONFIG_SUCCESS - in case of success
+ */
 
 SP_CONFIG_MSG spConfigGetLoggerFilename(char* loggerFileName, const SPConfig config);
 
