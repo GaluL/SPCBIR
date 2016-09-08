@@ -106,16 +106,30 @@ bool spDeserializeImagesFeatures(SPImage** imagesFeatures, SPConfig config)
 	return true;
 }
 
+typedef struct sp_indexkeeper_t {
+	int index;
+	int value;
+} SPIndexKeeper;
+
+int cmpIndexKeepersDesceding(const void* p1, const void* p2)
+{
+	const SPIndexKeeper* obj1 = (SPIndexKeeper*)p1;
+	const SPIndexKeeper* obj2 = (SPIndexKeeper*)p2;
+
+	return obj2->value - obj1->value;
+}
+
 char** spGetSimilarImagesPathes(SPConfig config, SPImage queryImage, SPKDTreeNode imagesDB)
 {
 	int i = 0;
 	SPBPQueue topMatchQueue = NULL;
-	int* occurencesArr = NULL;
+	SPIndexKeeper* occurencesArr = NULL;
 	int numOfImages = 0;
 	int spKNN = 0;
 	int numOfSimilarImages = 0;
 	SP_CONFIG_MSG configMsg;
 	SPListElement indexAndDistance = NULL;
+	char** result = NULL;
 
 
 	// TODO: handle config msgs
@@ -129,7 +143,7 @@ char** spGetSimilarImagesPathes(SPConfig config, SPImage queryImage, SPKDTreeNod
 		return NULL;
 	}
 
-	occurencesArr = (int*)malloc(sizeof(int) * numOfImages);
+	occurencesArr = (SPIndexKeeper*)malloc(sizeof(SPIndexKeeper) * numOfImages);
 	if (!occurencesArr)
 	{
 		spBPQueueDestroy(topMatchQueue);
@@ -138,7 +152,8 @@ char** spGetSimilarImagesPathes(SPConfig config, SPImage queryImage, SPKDTreeNod
 
 	for (i = 0; i < numOfImages; ++i)
 	{
-		occurencesArr[i] = 0;
+		occurencesArr[i].index = i;
+		occurencesArr[i].value = 0;
 	}
 
 	int queryNumOfFeatures = spImageGetNumOfFeature(queryImage);
@@ -151,17 +166,37 @@ char** spGetSimilarImagesPathes(SPConfig config, SPImage queryImage, SPKDTreeNod
 			indexAndDistance = spBPQueuePeek(topMatchQueue);
 			spBPQueueDequeue(topMatchQueue);
 
-			occurencesArr[spListElementGetIndex(indexAndDistance)]++;
+			occurencesArr[spListElementGetIndex(indexAndDistance)].value++;
 		}
 	}
 
-	for (i =0; i < numOfImages; ++i)
+	qsort(occurencesArr, numOfImages, sizeof(SPIndexKeeper), cmpIndexKeepersDesceding);
+
+	result = (char**)malloc(numOfSimilarImages * sizeof(char*));
+	if (!result)
 	{
-		printf("%d, ", occurencesArr[i]);
-		fflush(NULL);
+		free(occurencesArr);
+		spBPQueueDestroy(topMatchQueue);
 	}
 
-	return NULL;
+	for (i = 0; i < numOfSimilarImages; ++i)
+	{
+		result[i] = (char*)malloc(MAX_FILE_PATH_LEN * sizeof(char));
+		if (!result[i])
+		{
+			//TODO: free all previous strings allocations
+			free(result);
+			free(occurencesArr);
+			spBPQueueDestroy(topMatchQueue);
+		}
+	}
+
+	for (i = 0; i < numOfSimilarImages; ++i)
+	{
+		spConfigGetImagePath(result[i], config, occurencesArr[i].index);
+	}
+
+	return result;
 }
 void flushed_printf(const char* str)
 {

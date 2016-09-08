@@ -55,7 +55,7 @@
 #define DUMMY "temp"
 #define SKIP "skip"
 #define SKIP_EMPTY_LINE "skip empty line"
-#define SUFFIX_JPEG ".jpeg"
+#define SUFFIX_JPEG ".jpg"
 #define SUFFIX_PNG ".png"
 #define SUFFIX_BMP ".bmp"
 #define SUFFIX_GIF ".gif"
