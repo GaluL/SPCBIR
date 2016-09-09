@@ -179,7 +179,7 @@ int main(int argc, char** argv)
 				SimilarImagesPathes = spGetSimilarImagesPathes(config, query, tree);
 				if (spConfigMinimalGui(config,&configMsg))
 				{
-					for (i = 0; i < spConfigGetNumOfImages(config, &configMsg) ; i++)
+					for (i = 0; i < spConfigGetNumOfSimilarImage(config, &configMsg) ; i++)
 					{
 						imgProc->showImage(SimilarImagesPathes[i]);
 					}
@@ -189,7 +189,7 @@ int main(int argc, char** argv)
 					flushed_printf(BEST_CANDIDATES);
 					flushed_printf(queryPath);
 					flushed_printf(ARE);
-					for (i = 0; i < spConfigGetNumOfImages(config, &configMsg) ; i++)
+					for (i = 0; i < spConfigGetNumOfSimilarImage(config, &configMsg) ; i++)
 					{
 						flushed_printf_newline(SimilarImagesPathes[i]);
 					}
@@ -200,7 +200,6 @@ int main(int argc, char** argv)
 
 			}
 		}
-
 		else
 		{
 			//TODO: DESTROY ALL MEMORY;

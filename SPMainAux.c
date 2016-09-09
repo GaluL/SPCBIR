@@ -11,8 +11,6 @@
 #include "SPMainAux.h"
 #include "SPKDTreeNode.h"
 
-
-
 char* spGetConfigFileName(int argc, char** argv)
 {
 	char* defaultFile = NULL;
@@ -121,10 +119,13 @@ typedef struct sp_indexkeeper_t {
 
 int cmpIndexKeepersDesceding(const void* p1, const void* p2)
 {
+	int valuesDiff = 0;
 	const SPIndexKeeper* obj1 = (SPIndexKeeper*)p1;
 	const SPIndexKeeper* obj2 = (SPIndexKeeper*)p2;
 
-	return obj2->value - obj1->value;
+	valuesDiff = obj2->value - obj1->value;
+
+	return valuesDiff ? valuesDiff : obj1->index - obj2->index;
 }
 
 char** spGetSimilarImagesPathes(SPConfig config, SPImage queryImage, SPKDTreeNode imagesDB)
