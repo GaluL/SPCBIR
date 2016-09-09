@@ -234,3 +234,15 @@ char* flushed_gets()
 
 	return result;
 }
+void freeSimilarImagesPathes(char** SimilarImagesPathes,SPConfig config )
+{
+	int i = 0;
+	int numOfSimilarImages = 0;
+	SP_CONFIG_MSG configMsg;
+	numOfSimilarImages = spConfigGetNumOfSimilarImage(config, &configMsg);
+	for (i = 0; i < numOfSimilarImages; ++i)
+	{
+		free(SimilarImagesPathes[i]);
+	}
+	free(SimilarImagesPathes);
+}
