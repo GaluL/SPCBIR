@@ -16,7 +16,8 @@
 typedef struct sp_kdtreenode_t *SPKDTreeNode;
 
 SPKDTreeNode spKDTreeNodeCreate(SPPoint* features, int size, SPConfig config);
+void spKDTreeNodeDestroy(SPKDTreeNode kdTreeNode);
 SPKDTreeNode spCreateKDTreeFromImages(SPImage* imagesFeatures, SPConfig config);
-void spKDTreeNodeKNNSearch(SPKDTreeNode curr , SPBPQueue bpq, SPPoint testPoint);
+bool spKDTreeNodeKNNSearch(SPKDTreeNode curr , SPBPQueue bpq, SPPoint testPoint);
 
 #endif /* SPKDTREENODE_H_ */
