@@ -14,7 +14,7 @@
 #define MAX_FILE_PATH_LEN 1024
 #define ERROR_INVALID_COMAND_LINE "Invalid command line : use -c <config_filename>\n"
 #define ERROR_THE_CONFIGURATION "The configuration file "
-#define ERROR_COULD_NOT_OPEN "couldn’t be open\n"
+//#define ERROR_COULD_NOT_OPEN "couldn’t be open\n"
 #define ERROR_SPCBIR_NOT_OPEN "The default configuration file spcbir.config couldn’t be open\n"
 #define MSG_EXIT "Exiting...\n"
 #define CONFIG_ARGUMENT_FLAG "-c"

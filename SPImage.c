@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include "SPImage.h"
 #include "SPPoint.h"
+#include "SPCommonDefs.h"
 
 struct sp_image_t {
 	SPPoint* feats;
@@ -34,7 +35,6 @@ SPImage spImageCreateFromFeats(const char* featsFileName, int imgIndex)
 {
 	FILE *fp;
 	SPImage res = NULL;
-	SPPoint currPoint = NULL;
 	int i = 0;
 	int j = 0;
 	int currPointDim = 0;
@@ -163,7 +163,7 @@ int spImageGetNumOfFeature(SPImage image)
 {
 	if (!image)
 	{
-		return INVALID_VALUE;
+		return SP_INVALID_NEG_VALUE;
 	}
 
 	return image->featsCount;

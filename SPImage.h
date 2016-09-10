@@ -14,7 +14,6 @@
 #define FEATS_FILE_WRITE_MODE "wb"
 #define FEATS_FILE_READ_MODE "rb"
 #define NEW_LINE "\n"
-#define INVALID_VALUE "\n"
 
 typedef struct sp_image_t *SPImage;
 

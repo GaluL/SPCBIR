@@ -18,7 +18,7 @@ extern "C"
 #include "SPKDTreeNode.h"
 }
 
-SPImage extractImageFeatures(const SPConfig config, sp::ImageProc* imgProc, const char* imagePath, int index)
+SPImage extractImageFeatures(sp::ImageProc* imgProc, const char* imagePath, int index)
 {
 	SPPoint* features = NULL;
 	int featuresExtracted = 0;
@@ -51,7 +51,7 @@ SPImage* extractImagesFeatures(const SPConfig config, sp::ImageProc* imgProc, in
 	for (i = 0; i < numOfImages; ++i)
 	{
 		spConfigGetImagePath(imagePath, config, i);
-		imagesFeatures[i] = extractImageFeatures(config, imgProc, imagePath, i);
+		imagesFeatures[i] = extractImageFeatures(imgProc, imagePath, i);
 		if (!imagesFeatures)
 		{
 			// TODO: handle
@@ -62,41 +62,41 @@ SPImage* extractImagesFeatures(const SPConfig config, sp::ImageProc* imgProc, in
 	return imagesFeatures;
 }
 
-void UnitTest()
-{
-	srand(0);
-	SPPoint* pointsArr = (SPPoint*)malloc(5 * sizeof(SPPoint));
-	SPImage image;
-
-	double median = -1;
-
-	double coords0[2] = {1, 2};
-	pointsArr[0] = spPointCreate(coords0, 2, 0);
-
-	double coords1[2] = {123, 70};
-	pointsArr[1] = spPointCreate(coords1, 2, 1);
-
-	double coords2[2] = {2, 7};
-	pointsArr[2] = spPointCreate(coords2, 2, 2);
-
-	double coords3[2] = {9, 11};
-	pointsArr[3] = spPointCreate(coords3, 2, 3);
-
-	double coords4[2] = {3, 4};
-	pointsArr[4] = spPointCreate(coords4, 2, 4);
-
-	image = spImageCreateFromImg(pointsArr, 5);
-	spImageSaveToFeats(image, "testImage.feat");
-	//image = spImageCreateFromFeats("testImage.feat");
-
-	SPKDArray kdArr = spKDArrayInit(pointsArr, 5);
-	spKDArraySplit(kdArr, 0, &median);
-
-	if (image)
-	{
-		return;
-	}
-}
+//void UnitTest()
+//{
+//	srand(0);
+//	SPPoint* pointsArr = (SPPoint*)malloc(5 * sizeof(SPPoint));
+//	SPImage image;
+//
+//	double median = -1;
+//
+//	double coords0[2] = {1, 2};
+//	pointsArr[0] = spPointCreate(coords0, 2, 0);
+//
+//	double coords1[2] = {123, 70};
+//	pointsArr[1] = spPointCreate(coords1, 2, 1);
+//
+//	double coords2[2] = {2, 7};
+//	pointsArr[2] = spPointCreate(coords2, 2, 2);
+//
+//	double coords3[2] = {9, 11};
+//	pointsArr[3] = spPointCreate(coords3, 2, 3);
+//
+//	double coords4[2] = {3, 4};
+//	pointsArr[4] = spPointCreate(coords4, 2, 4);
+//
+//	image = spImageCreateFromImg(pointsArr, 5);
+//	spImageSaveToFeats(image, "testImage.feat");
+//	//image = spImageCreateFromFeats("testImage.feat");
+//
+//	//SPKDArray kdArr = spKDArrayInit(pointsArr, 5);
+//	//spKDArraySplit(kdArr, 0, &median);
+//
+//	if (image)
+//	{
+//		return;
+//	}
+//}
 
 int main(int argc, char** argv)
 {
@@ -107,7 +107,7 @@ int main(int argc, char** argv)
 	sp::ImageProc* imgProc = NULL;
 	int numOfImages = 0;
 	SPImage* imagesFeatures = NULL;
-	SPLogger logger = NULL;
+	//SPLogger logger = NULL;
 	bool extractMode = false;
 	char* queryPath = NULL;
 	SPKDTreeNode tree = NULL;
@@ -175,7 +175,7 @@ int main(int argc, char** argv)
 
 			{
 				// WHY 666???
-				SPImage query = extractImageFeatures(config, imgProc, queryPath, 666);
+				SPImage query = extractImageFeatures(imgProc, queryPath, 666);
 				SimilarImagesPathes = spGetSimilarImagesPathes(config, query, tree);
 				if (spConfigMinimalGui(config,&configMsg))
 				{

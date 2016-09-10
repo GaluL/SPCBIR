@@ -9,12 +9,20 @@
 #include <stddef.h>
 #include <assert.h>
 #include "SPKDArray.h"
+#include "SPLogger.h"
+#include "SPCommonDefs.h"
 
 #define MAP_NOT_EXIST -1
 
 struct sp_kdarray_t {
+	// The number of features in the array
 	int size;
+
+	// Features array
 	SPPoint* points;
+
+	// A matrix of size "size" x features dimension, storing the indexes of features in "point"
+	// Sorted in each row by the coord of the points in that axis
 	int** dimsSortedIndexesMat;
 };
 
@@ -23,11 +31,16 @@ struct sp_kdsplittedarray_t {
 	SPKDArray kdRight;
 };
 
+// Holder for specific axis coord and the point index in point array - used for sorting
+// matrix rows and keeping the orignial indexes
 typedef struct sp_indexandcoord_t {
 	int index;
 	double coord;
 } SPIndexAndCoord;
 
+/**
+ * SPIndexAndCoord compare function - Ascending order (according to coord field)
+ */
 int cmpCoords(const void* p1, const void* p2)
 {
 	const SPIndexAndCoord* point1 = (SPIndexAndCoord*)p1;
@@ -36,25 +49,40 @@ int cmpCoords(const void* p1, const void* p2)
 	return point1->coord - point2->coord;
 }
 
-void sortPointIndexesByDim(SPPoint* points, int pointsCount,int** indexesMat , int axis)
+bool sortPointIndexesByDim(SPKDArray kdArr , int axis)
 {
 	int i = 0;
-	SPIndexAndCoord* dimCoords = (SPIndexAndCoord*)malloc(pointsCount * sizeof(SPIndexAndCoord));
+	SPIndexAndCoord* dimCoords = (SPIndexAndCoord*)malloc(kdArr->size * sizeof(SPIndexAndCoord));
 
-	for (i = 0; i < pointsCount; ++i)
+	// Check if alloaction succeeded - if not print log and return false to indicate failure
+	if (!dimCoords)
 	{
-		dimCoords[i].index = i;
-		dimCoords[i].coord = spPointGetAxisCoor(points[i], axis);
+		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
+		return false;
 	}
 
-	qsort(dimCoords, pointsCount, sizeof(SPIndexAndCoord), cmpCoords);
-
-	for (i = 0; i < pointsCount; ++i)
+	// Iterate over the point of the KDArray and copy each array index and the coord of the
+	// requested axis to the IndexAndCoords array
+	for (i = 0; i < kdArr->size; ++i)
 	{
-		indexesMat[i][axis] = dimCoords[i].index;
+		dimCoords[i].index = i;
+		dimCoords[i].coord = spPointGetAxisCoor(kdArr->points[i], axis);
+	}
+
+	// Sorting the indexAndCoords array by the coord field in ascending order
+	qsort(dimCoords, kdArr->size, sizeof(SPIndexAndCoord), cmpCoords);
+
+	// Copy the indexes of the sorted array to the matching row in dimSortedIndexesMat
+	// to represent the points of the array indexes sorted by the requested axis
+	for (i = 0; i < kdArr->size; ++i)
+	{
+		kdArr->dimsSortedIndexesMat[i][axis] = dimCoords[i].index;
 	}
 
 	free(dimCoords);
+
+	// If nothing went wrong - return true
+	return true;
 }
 
 SPKDArray spKDArrayInit(SPPoint* arr, int size)
@@ -63,32 +91,45 @@ SPKDArray spKDArrayInit(SPPoint* arr, int size)
 	int i = 0;
 	int pointsDim = 0;
 
-	if (!arr)
+	// Validity checking for array argument
+	if (!arr || size < 0)
 	{
+		spLoggerPrintError(SP_BAD_ARGUMENT, __FILE__, __func__, __LINE__);
 		return NULL;
 	}
 
 	kdArray = (SPKDArray)malloc(sizeof(*kdArray));
 	if (!kdArray)
 	{
+		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
 		return NULL;
 	}
 
 	kdArray->size = size;
+
+	// Allocating KDArray points array
 	kdArray->points = (SPPoint*)malloc(size * sizeof(SPPoint));
 	if (!kdArray->points)
 	{
+		spLoggerPrintError(SP_BAD_ARGUMENT, __FILE__, __func__, __LINE__);
+
+		spKDArrayDestroy(kdArray);
 		return NULL;
 	}
 
+	// TODO: check if change to spPCADim is needed
 	if (size > 0)
 	{
 		pointsDim = spPointGetDimension(arr[0]);
 	}
 
+	// Allocating indexes matrix
 	kdArray->dimsSortedIndexesMat = (int**)malloc(size * sizeof(int*));
 	if (!kdArray->dimsSortedIndexesMat)
 	{
+		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
+
+		spKDArrayDestroy(kdArray);
 		return NULL;
 	}
 
@@ -97,25 +138,38 @@ SPKDArray spKDArrayInit(SPPoint* arr, int size)
 		kdArray->dimsSortedIndexesMat[i] = (int*)malloc(pointsDim * sizeof(int));
 		if (!kdArray->dimsSortedIndexesMat[i])
 		{
-			// TODO: handle
+			spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
+
+			spKDArrayDestroy(kdArray);
+			return NULL;
 		}
 	}
 
+	// Copying the points passed as array argument to the KDArray points array field
 	for (i = 0; i < size; ++i)
 	{
 		SPPoint point = spPointCopy(arr[i]);
 		if (!point)
 		{
-			//TODO: Handle failure and destruction of previous allocations
+			spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
+
+			spKDArrayDestroy(kdArray);
 			return NULL;
 		}
 
 		kdArray->points[i] = point;
 	}
 
+	//
 	for (i = 0; i < pointsDim; ++i)
 	{
-		sortPointIndexesByDim(kdArray->points, kdArray->size, kdArray->dimsSortedIndexesMat, i);
+		 if (!sortPointIndexesByDim(kdArray, i))
+		 {
+			 // If failed sorting and placing indexes in the matrix, destroy the object
+			 // Error print is handled by sortPointIndexesByDim function
+			 spKDArrayDestroy(kdArray);
+			 return NULL;
+		 }
 	}
 
 	return kdArray;
@@ -184,11 +238,26 @@ void fillMatFromParent(SPKDArray kdLeft, SPKDArray kdRight, SPKDArray kdParent,
 	}
 }
 
-SPKDSplittedArray spKDArraySplit(SPKDArray kdArr, int axis, double* splitMedian)
+void freeIndexMaps(int* indexMapToSide, int* indexMapLeft, int* indexMapRight)
 {
-	SPKDSplittedArray result = NULL;
-	SPKDArray kdLeft = NULL;
-	SPKDArray kdRight = NULL;
+	if (indexMapRight)
+	{
+		free(indexMapRight);
+	}
+
+	if (indexMapLeft)
+	{
+		free(indexMapLeft);
+	}
+
+	if (indexMapToSide)
+	{
+		free(indexMapToSide);
+	}
+}
+
+bool spKDArraySplit(SPKDArray kdArr, int axis, SPKDArray* kdLeft, SPKDArray* kdRight, double* splitMedian)
+{
 	SPPoint currPoint = NULL;
 	int leftIndex = 0;
 	int rightIndex = 0;
@@ -198,116 +267,173 @@ SPKDSplittedArray spKDArraySplit(SPKDArray kdArr, int axis, double* splitMedian)
 	int i = 0;
 	int pointIndex = MAP_NOT_EXIST;
 
-	assert(kdArr);
+	// Checking for argument validity
+	if (!kdArr || !kdLeft || !kdRight)
+	{
+		spLoggerPrintError(SP_BAD_ARGUMENT, __FILE__, __func__, __LINE__);
+		return false;
+	}
 
-	kdLeft = (SPKDArray)malloc(sizeof(*kdLeft));
+	// Allocating memory for left kdArray
+	*kdLeft = (SPKDArray)malloc(sizeof(**kdLeft));
 	if (!kdLeft)
 	{
-		//TODO: handle
+		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
+		return false;
 	}
 
-	kdRight = (SPKDArray)malloc(sizeof(*kdLeft));
+	// Allocating memory for right kdArray
+	*kdRight = (SPKDArray)malloc(sizeof(**kdRight));
 	if (!kdRight)
 	{
-		//TODO: handle
+		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
+		return false;
 	}
 
-	kdLeft->size = (int)ceil(kdArr->size / 2.0);
-	kdLeft->points = (SPPoint*)malloc(kdLeft->size * sizeof(SPPoint));
-	if (!kdLeft->points)
+	// Splitting the kdArray by two equal size arrays if size is even, if odd - left side will
+	// be greater by one element
+	(*kdLeft)->size = (int)ceil(kdArr->size / 2.0);
+	(*kdLeft)->points = (SPPoint*)malloc((*kdLeft)->size * sizeof(SPPoint));
+	if (!(*kdLeft)->points)
 	{
-		//TODO: handle
+		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
+		return false;
 	}
 
-	kdRight->size = kdArr->size - kdLeft->size;
-	kdRight->points = ((SPPoint*)malloc(kdRight->size * sizeof(SPPoint)));
-	if (!kdRight->points)
+	// Right size will be the size of the parent array minus the size of the left (equal to left
+	// or smaller by one element)
+	(*kdRight)->size = kdArr->size - (*kdLeft)->size;
+	(*kdRight)->points = ((SPPoint*)malloc((*kdRight)->size * sizeof(SPPoint)));
+	if (!(*kdRight)->points)
 	{
-		//TODO: handle
+		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
+		return false;
 	}
 
+	// Allocating memory for indexMapToSide which maps feature index to side - 0 for left,
+	// 1 for right
 	indexMapToSide = (int*)malloc(kdArr->size * sizeof(int));
 	if (!indexMapToSide)
 	{
-		//TODO: handle
+		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
+		return false;
 	}
 
+	// Allocating memory for indexMapLeft which maps index in the parent array to index in left array
 	indexMapLeft = (int*)malloc(kdArr->size * sizeof(int));
 	if (!indexMapLeft)
 	{
-		//TODO: handle
+		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
+
+		freeIndexMaps(indexMapToSide, indexMapLeft, indexMapRight);
+		return false;
 	}
 
+	// Allocating memory for indexMapLeft which maps index in the parent array to index in left array
 	indexMapRight = (int*)malloc(kdArr->size * sizeof(int));
 	if (!indexMapRight)
 	{
-		//TODO: handle
+		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
+
+		freeIndexMaps(indexMapToSide, indexMapLeft, indexMapRight);
+		return false;
 	}
 
+	// Init maps to non-exsiting values aka -1
 	for (i = 0; i < kdArr->size; ++i)
 	{
 		indexMapLeft[i] = MAP_NOT_EXIST;
 		indexMapRight[i] = MAP_NOT_EXIST;
 	}
 
+	// Iterating over the row of the split dimension in the matrix
 	for (i = 0; i < kdArr->size; ++i)
 	{
+		// Getting current point index
 		pointIndex = kdArr->dimsSortedIndexesMat[i][axis];
 
-		indexMapToSide[pointIndex] = (i < kdLeft->size) ? 0 : 1;
+		// Till reaching the median - mapping indexes to left array, after that to the right
+		indexMapToSide[pointIndex] = (i < (*kdLeft)->size) ? 0 : 1;
 
-		if (i == kdLeft->size - 1 && splitMedian)
+		// If current index is the split median (last element of left array) storing the coord
+		// of the point which owns this index of the split dimension in the passed argument
+		if (i == (*kdLeft)->size - 1 && splitMedian)
 		{
 			*splitMedian = spPointGetAxisCoor(kdArr->points[pointIndex], axis);
 		}
 	}
 
+	// Creating the left and right KDArrays
 	for (i = 0; i < kdArr->size; ++i)
 	{
 		currPoint = spPointCopy(kdArr->points[i]);
 		if (!currPoint)
 		{
-			//TODO: handle
+			spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
+
+			freeIndexMaps(indexMapToSide, indexMapLeft, indexMapRight);
+			return false;
 		}
 
 		if (indexMapToSide[i] == 0)
 		{
-			kdLeft->points[leftIndex] = currPoint;
+			(*kdLeft)->points[leftIndex] = currPoint;
 			indexMapLeft[i] = leftIndex;
 			leftIndex++;
 		}
 		else
 		{
-			kdRight->points[rightIndex] = currPoint;
+			(*kdRight)->points[rightIndex] = currPoint;
 			indexMapRight[i] = rightIndex;
 			rightIndex++;
 		}
 	}
 
-	free(indexMapToSide);
+	fillMatFromParent(*kdLeft, *kdRight, kdArr, indexMapLeft, indexMapRight);
 
-	fillMatFromParent(kdLeft, kdRight, kdArr, indexMapLeft, indexMapRight);
+	freeIndexMaps(indexMapToSide, indexMapLeft, indexMapRight);
 
-	free(indexMapLeft);
-	free(indexMapRight);
+	return true;
+}
 
-	result = (SPKDSplittedArray)malloc(sizeof(*result));
-	if (!result)
+void spKDArrayDestroy(SPKDArray kdArr)
+{
+	int i = 0;
+
+	if (kdArr->points)
 	{
-		//TODO: handle
+		for (i = 0; i < kdArr->size; ++i)
+		{
+			if (kdArr->points[i])
+			{
+				spPointDestroy(kdArr->points[i]);
+			}
+		}
+
+		free(kdArr->points);
 	}
 
-	result->kdLeft = kdLeft;
-	result->kdRight = kdRight;
+	if (kdArr->dimsSortedIndexesMat)
+	{
+		for (i = 0; i < kdArr->size; ++i)
+		{
+			if (kdArr->dimsSortedIndexesMat[i])
+			{
+				free(kdArr->dimsSortedIndexesMat[i]);
+			}
+		}
 
-	return result;
+		free(kdArr->dimsSortedIndexesMat);
+	}
+
+	free(kdArr);
 }
 
 int spKDArrayGetSize(SPKDArray kdArr)
 {
 	if (kdArr == NULL)
 	{
-		return NULL;
+		return INVALID_VALUE;
 	}
 
 	return kdArr->size;

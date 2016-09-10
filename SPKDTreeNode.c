@@ -59,7 +59,8 @@ int getSplitDimension(SPConfig config, SPKDArray kdArr, int upperLevelSplitDim)
 SPKDTreeNode createKDTreeFromKDArray(SPKDArray kdArray, int upperLevelSplitDim, SPConfig config)
 {
 	SPKDTreeNode kdTreeNode = NULL;
-	SPKDSplittedArray kdSplittedArray = NULL;
+	SPKDArray kdArrayLeft = NULL;
+	SPKDArray kdArrayRight = NULL;
 
 	kdTreeNode = (SPKDTreeNode)malloc(sizeof(*kdTreeNode));
 	if (!kdTreeNode)
@@ -79,27 +80,24 @@ SPKDTreeNode createKDTreeFromKDArray(SPKDArray kdArray, int upperLevelSplitDim, 
 	{
 		kdTreeNode->Dim = getSplitDimension(config, kdArray, upperLevelSplitDim);
 
-		kdSplittedArray = spKDArraySplit(kdArray, kdTreeNode->Dim, &kdTreeNode->Val);
-		if (!kdSplittedArray)
+		if (!spKDArraySplit(kdArray, kdTreeNode->Dim, &kdArrayLeft, &kdArrayRight, &kdTreeNode->Val))
 		{
 			// TODO: handle
 		}
 
-		kdTreeNode->Left = createKDTreeFromKDArray(spKDSplittedArrayGetLeft(kdSplittedArray), kdTreeNode->Dim, config);
+		kdTreeNode->Left = createKDTreeFromKDArray(kdArrayLeft, kdTreeNode->Dim, config);
 		if (!kdTreeNode->Left)
 		{
 			//TODO: handle
 		}
 
-		kdTreeNode->Right = createKDTreeFromKDArray(spKDSplittedArrayGetRight(kdSplittedArray), kdTreeNode->Dim, config);
+		kdTreeNode->Right = createKDTreeFromKDArray(kdArrayRight, kdTreeNode->Dim, config);
 		if (!kdTreeNode->Right)
 		{
 			//TODO: handle
 		}
 
 		kdTreeNode->Data = NULL;
-
-		free(kdSplittedArray);
 	}
 
 	return kdTreeNode;
@@ -113,7 +111,7 @@ SPKDTreeNode spKDTreeNodeCreate(SPPoint* features, int size, SPConfig config)
 		// TODO: handle
 	}
 
-	return createKDTreeFromKDArray(kdArray,  INVALID_VALUE, config);
+	return createKDTreeFromKDArray(kdArray, INVALID_VALUE, config);
 }
 
 bool SPKDTreeNodeIsLeaf(SPKDTreeNode node)

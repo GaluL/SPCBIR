@@ -52,7 +52,9 @@ SPKDArray spKDArrayInit(SPPoint* arr, int size);
  * An array of the actual features extracted. NULL is returned in case of
  * an error.
  */
-SPKDSplittedArray spKDArraySplit(SPKDArray kdArr, int axis, double* splitMedian);
+bool spKDArraySplit(SPKDArray kdArr, int axis, SPKDArray* kdLeft, SPKDArray* kdRight, double* splitMedian);
+
+void spKDArrayDestroy(SPKDArray kdArr);
 
 /**
  * Returns an array of features for the image imagePath. All SPPoint elements
