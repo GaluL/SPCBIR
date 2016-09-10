@@ -29,6 +29,7 @@
 #define LOGGER_FILE_NAME_DEFULT "stdout"
 #define COMMENT_MARK '#'
 #define EQUAL_MARK '='
+#define NULL_TERMINATE '\0'
 #define SP_IMAGES_DIRECTORY "spImagesDirectory"
 #define SP_IMAGES_PREFIX "spImagesPrefix"
 #define SP_IMAGES_SUFFIX "spImagesSuffix"
@@ -317,7 +318,7 @@ bool spIsDefaultInitiate(const char* filename, SP_CONFIG_MSG* msg,SPConfig confi
 
 SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg);
 void spRegularErrorPrinter(const char* filename, int line,int ErrorTypeNum, char* paramterName);
-int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+bool spAssignArgument(SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
 		const char* filename);
 
 

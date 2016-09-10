@@ -103,7 +103,6 @@ int main(int argc, char** argv)
 	bool terminate = false;
 	SPConfig config = NULL;
 	SP_CONFIG_MSG configMsg;
-	char* configFileName = spGetConfigFileName(argc, argv);
 	sp::ImageProc* imgProc = NULL;
 	int numOfImages = 0;
 	SPImage* imagesFeatures = NULL;
@@ -113,9 +112,7 @@ int main(int argc, char** argv)
 	SPKDTreeNode tree = NULL;
 	char** SimilarImagesPathes = NULL;
 	int i = 0;
-
-	//UnitTest();
-
+	char* configFileName = spGetConfigFileName(argc, argv);
 
 	if (!configFileName)
 	{

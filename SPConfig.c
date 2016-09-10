@@ -11,6 +11,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
+#include "SPCommonDefs.h"
 
 
 struct sp_config_t
@@ -100,82 +101,8 @@ void spRegularErrorPrinter(const char* filename, int line,int ErrorTypeNum, char
 	}
 
 }
-char* spCleaningString(char* str,SP_CONFIG_MSG* msg,const char* filename,int line)
-{
-	char* result;
-	int length = strlen(str);
-	char* temp = (char*)malloc((length + 1) * sizeof(char));
-	char letter;
-	int i = 0;
-	int j = 0;
-	int isBlankFound = 0;
-	int isCharFound = 0;
-// blank
-	for (i = 0; i < length; i++)
-	{
-		letter = str[i];
-		//	checking if the letter is # and in the middle
-		if( (letter == COMMENT_MARK) && (j != 0) )
-		{
-			*msg = SP_CONFIG_INVALID_STRING;
-			spRegularErrorPrinter(filename,line,0,DUMMY);
-			return NULL;
-		}
-		// if the previous condition didn't meet and the the letter is # this is a comment line and should be skipped
-		else if(letter == COMMENT_MARK)
-		{
-			result = (char*)malloc((SIZE_OF_SKIP + 1) * sizeof(char));
-			result = SKIP;
-			return result;
-		}
-		else
-			// if space is found we need to check that it is not in the middle of the variable
-		{
-			if (isspace(letter))
-			{
-				isBlankFound = 1;
-			}
-			else
-			{
-				// if both are on means there is a problem and we find a space in the middle
-				if ((isCharFound)&&(isBlankFound))
-				{
-					*msg = SP_CONFIG_INVALID_STRING;
-					spRegularErrorPrinter(filename,line,0,DUMMY);
-					return NULL;
-				}
-				else
-				{
-					temp[j] = letter;
-					j++;
-					isBlankFound = 0;
-					isCharFound = 1;
-				}
-			}
-		 }
-	}
-	if (j == 0)
-	{
-		result = (char*)malloc((SIZE_OF_SKIP_SKIP_EMPTY_LINE + 1) * sizeof(char));
-		result = SKIP_EMPTY_LINE;
-		return result;
-	}
-	// reduce j by 1 because the last letter incremented it
-	temp[j] = '\0';
-	length = j-1;
-	result = (char*)malloc((length + 1) * sizeof(char));
-	if (!result)
-	{
-		printf("memory allocation problem");
-		return NULL;
-	}
 
-	strcpy(result, temp);
-	free (temp);
-	return result;
-	}
-
-int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+bool spAssignArgument(SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
 		const char* filename)
 {
 	int i = 2;
@@ -186,11 +113,11 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 		{
 			*msg = SP_CONFIG_ALLOC_FAIL;
 			spConfigDestroy(config);
-			return 3;
+			return false;
 		}
 		strcpy(config->spImagesDirectory,variable_value);
-		i = 1;
-		return i;
+
+		return true;
 	}
 	else if (! strcmp(variable_name,SP_IMAGES_PREFIX))
 	{
@@ -199,11 +126,11 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 		{
 			*msg = SP_CONFIG_ALLOC_FAIL;
 			spConfigDestroy(config);
-			return 3;
+			return false;
 		}
 		strcpy(config->spImagesPrefix,variable_value);
-		i = 1;
-		return i;
+
+		return true;
 	}
 	else if (! strcmp(variable_name,SP_IMAGES_SUFFIX))
 	{
@@ -215,18 +142,18 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 			{
 				*msg = SP_CONFIG_ALLOC_FAIL;
 				spConfigDestroy(config);
-				return 3;
+				return false;
 			}
 			strcpy(config->spImagesSuffix,variable_value);
-			i = 1;
-			return i;
+
+			return true;
 		}
 		else
 		{
 			*msg = SP_CONFIG_INVALID_STRING;
 			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
 			spConfigDestroy(config);
-			return 0;
+			return false;
 		}
 	}
 	else if (! strcmp(variable_name,SP_NUM_OF_IMAGES))
@@ -235,14 +162,14 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 		{
 			config->spNumOfImages = atoi(variable_value);
 			i = 1;
-			return i;
+			return false;
 		}
 		else
 		{
 			*msg = SP_CONFIG_INVALID_INTEGER;
 			spRegularErrorPrinter(filename,line,1,DUMMY);
 			spConfigDestroy(config);
-			return 0;
+			return false;
 		}
 	}
 	else if (! strcmp(variable_name,SP_PCA_DIMENSION))
@@ -251,15 +178,15 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 				(atoi(variable_value) < SP_PCA_DIMENSION_CONSTRAINT_HIGH))
 		{
 			config->spPCADimension = atoi(variable_value);
-			i = 1;
-			return i;
+
+			return true;
 		}
 		else
 		{
 			*msg = SP_CONFIG_INVALID_INTEGER;
 			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
 			spConfigDestroy(config);
-			return 0;
+			return false;
 		}
 	}
 	else if (! strcmp(variable_name,SP_PCA_FILE_NAME))
@@ -268,50 +195,51 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 		config->spPCAFilename = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
 		if (!config->spPCAFilename)
 		{
-		*msg = SP_CONFIG_ALLOC_FAIL;
-		spConfigDestroy(config);
-		return 3;
+			*msg = SP_CONFIG_ALLOC_FAIL;
+			spConfigDestroy(config);
+			return false;
 		}
 		strcpy(config->spPCAFilename,variable_value);
-		i = 1;
-		return i;
+
+		return true;
 	}
-	else if (! strcmp(variable_name,SP_NUM_OF_FEATURES))
+	else if (!strcmp(variable_name, SP_NUM_OF_FEATURES))
 	{
 		if (atoi(variable_value) > 0)
 		{
 			config->spNumOfFeatures = atoi(variable_value);
-			i = 1;
 		}
 		else
 		{
 			*msg = SP_CONFIG_INVALID_INTEGER;
 			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
 			spConfigDestroy(config);
-			return 0;
+			return false;
 		}
+
+		return true;
 	}
 	else if (! strcmp(variable_name,SP_EXTRACTION_MODE))
 	{
 		if (strcmp(variable_value,"true")== 0)
 		{
-
 			config->spExtractionMode = true;
-			i = 1;
-			return i;
+
+			return true;
 		}
 		else if (strcmp(variable_value,"false")== 0)
 		{
 			config->spExtractionMode = false;
-			i = 1;
-			return i;
+
+			return true;
 		}
 		else
 		{
 			*msg = SP_CONFIG_INVALID_STRING;
 			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
 			spConfigDestroy(config);
-			return 0;
+
+			return false;
 		}
 
 	}
@@ -320,78 +248,78 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 		if(atoi(variable_value) > 0)
 		{
 			config->spNumOfSimilarImages  = atoi(variable_value);
-			i = 1;
+
+			return true;
 		}
 		else
 		{
 			*msg = SP_CONFIG_INVALID_INTEGER;
 			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
 			spConfigDestroy(config);
-			return 0;
+			return false;
 		}
 
 	}
-	else if (! strcmp(variable_name,SP_KD_TREE_SPLIT_METHOD))
+	else if (!strcmp(variable_name,SP_KD_TREE_SPLIT_METHOD))
 	{
 		if (strcmp(variable_value,"RANDOM"))
 		{
-		config->spKDTreeSplitMethod  = RANDOM;
-		i = 1;
+			config->spKDTreeSplitMethod  = RANDOM;
 		}
 		else if (strcmp(variable_value,"MAX_SPREAD"))
 		{
 			config->spKDTreeSplitMethod  = MAX_SPREAD;
-			i = 1;
 		}
 		else if (strcmp(variable_value,"INCREMENTAL"))
 		{
-		config->spKDTreeSplitMethod  = INCREMENTAL;
-		i = 1;
+			config->spKDTreeSplitMethod  = INCREMENTAL;
 		}
 		else
 		{
 			*msg = SP_CONFIG_INVALID_STRING;
 			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
 			spConfigDestroy(config);
-			return 0;
+			return false;
 		}
 
+		return true;
 	}
 	else if (! strcmp(variable_name,SP_KNN))
 	{
 		if(atoi(variable_value) > 0)
 		{
 			config->spKNN = atoi(variable_value);
-			i = 1;
 		}
 		else
 		{
 			*msg = SP_CONFIG_INVALID_INTEGER;
 			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
 			spConfigDestroy(config);
-			return 0;
+			return false;
 		}
+
+		return true;
 	}
 	else if (! strcmp(variable_name,SP_MINMIMAL_GUI))
 	{
 		if (strcmp(variable_value,"true")== 0)
 		{
 			config->spMinimalGUI = true;
-			i = 1;
-			return i;
+
+			return true;
 		}
 		else if (strcmp(variable_value,"false")== 0)
 		{
 			config->spMinimalGUI = false;
 			i = 1;
-			return i;
+			return true;
 		}
 		else
 		{
 			*msg = SP_CONFIG_INVALID_STRING;
 			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
 			spConfigDestroy(config);
-			return 0;
+			return false;
 		}
 
 	}
@@ -400,15 +328,16 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 		if ((atoi(variable_value) > 0) && (atoi(variable_value) < 5))
 		{
 			config->spLoggerLevel = atoi(variable_value);
-			i = 1;
 		}
 		else
 		{
 			*msg = SP_CONFIG_INVALID_INTEGER;
 			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
 			spConfigDestroy(config);
-			return 0;
+			return false;
 		}
+
+		return true;
 	}
 	else if (! strcmp(variable_name,SP_LOGGER_FILE_NAME))
 	{
@@ -416,43 +345,156 @@ int spAssignArgument(SPConfig config, char* variable_name, char* variable_value,
 		config->spLoggerFilename = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
 		if (!config->spLoggerFilename)
 		{
-		*msg = SP_CONFIG_ALLOC_FAIL;
-		spConfigDestroy(config);
-		return 3;
+			*msg = SP_CONFIG_ALLOC_FAIL;
+			spConfigDestroy(config);
+			return false;
 		}
 		strcpy(config->spLoggerFilename,variable_value);
-		i = 1;
-		return i;
+
+		return true;
 	}
 	if (i == 2)
 	{
 		*msg = SP_CONFIG_INVALID_STRING;
 		spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_INVALID_CONFIGURATION_LINE,DUMMY);
 		spConfigDestroy(config);
-		return 0;
+		return false;
 	}
 
-	return i;
+	return true;
+}
+
+char* trimWhitespace(char *str)
+{
+  char *end;
+
+  // Trim leading space
+  while(isspace(*str)) str++;
+
+  if(*str == 0)  // All spaces?
+    return str;
+
+  // Trim trailing space
+  end = str + strlen(str) - 1;
+  while(end > str && isspace(*end)) end--;
+
+  // Write new null terminator
+  *(end+1) = 0;
+
+  return str;
+}
+
+char* cleanAssignmentOperand(char* str, SP_CONFIG_MSG* msg, const char* filename, int line)
+{
+	char* result = NULL;
+	int i = 0;
+
+	trimWhitespace(str);
+
+	for (i = 0; i < strlen(str); i++)
+	{
+		//	checking if the letter is # and in the middle
+		if( (str[i] == COMMENT_MARK) || isspace(str[i]))
+		{
+			*msg = SP_CONFIG_INVALID_STRING;
+			spRegularErrorPrinter(filename, line, 0, DUMMY);
+			return NULL;
+		}
+	}
+
+	result = (char*)malloc((strlen(str) + 1) * sizeof(char));
+	if (!result)
+	{
+		// TODO: handle
+	}
+
+	strcpy(result, str);
+
+	return result;
+}
+
+bool proccesAssignmentLine(SPConfig config, const char* line, const char* filename, int lineNumber, SP_CONFIG_MSG* configMsg)
+{
+	char* equalMarkIndex = NULL;
+	char* tmpVariableName = NULL;
+	char* tmpVariableValue = NULL;
+	int variableLen = 0;
+	int valueLen = 0;
+	char* variableName = NULL;
+	char* variableValue = NULL;
+
+	equalMarkIndex = strchr(line, EQUAL_MARK);
+	if (!equalMarkIndex)
+	{
+		// TODO: print error in line
+	}
+
+	variableLen = (int)(equalMarkIndex - line);
+	valueLen = (int)(line + strlen(line) - equalMarkIndex);
+
+	tmpVariableName = (char*)malloc((variableLen + 1) * sizeof(char));
+	tmpVariableValue = (char*)malloc((valueLen + 1) * sizeof(char));
+
+	strncpy(tmpVariableName, line, variableLen);
+	tmpVariableName[variableLen - 1] = NULL_TERMINATE;
+	strncpy(tmpVariableValue, line + variableLen + 1, valueLen);
+	tmpVariableValue[valueLen - 1] = NULL_TERMINATE;
+
+	// if '=' not exist we need to check if its comment line,empty line or an error
+	variableName = cleanAssignmentOperand(tmpVariableName, configMsg, filename, lineNumber);
+	if (!variableName)
+	{
+		// TODO: handle
+		return false;
+	}
+
+	variableValue = cleanAssignmentOperand(tmpVariableValue, configMsg, filename, lineNumber);
+	if (!variableValue)
+	{
+		// TODO: handle
+		return false;
+	}
+
+	free(tmpVariableName);
+	free(tmpVariableValue);
+
+	/*
+	 * Check if we succeeded to assign the argument :
+	 * 0-> if constraint not met
+	 * 1-> if succeeded
+	 * 2-> if the variable name is not one of the config fields
+	 * 3-> if memory allocate fail
+	 *
+	 *
+	 */
+	if (!spAssignArgument(config, variableName, variableValue,
+			configMsg, lineNumber, filename))
+	{
+		// TODO: handle
+		return false;
+	}
+
+	return true;
 }
 
 SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 {
-	int succeeded;
 	int line_counter = 0;
-	char* index_of_equal;
-	char input[MAX_LINE_LENGTH];
-	char* temp_variable;
-	char* variable_name = NULL;
-	char* variable_value = NULL;
 	bool isDefuatInit = true;
+	char* input = NULL;
+	char* tmpInput = NULL;
+	FILE *file;
+	char* newLinePointer = NULL;
+
 	if (!filename)
 	{
 		*msg = SP_CONFIG_INVALID_ARGUMENT;
-		printf("%s%s%s/n",ERROR_THE_CONFIGURATION_FILE,filename,ERROR_COULD_NOT_OPEN);
+		printf("%s %s %s/n", ERROR_THE_CONFIGURATION_FILE, filename, ERROR_COULD_NOT_OPEN);
 		fflush(NULL);
 		return NULL;
 	}
-	FILE *file = fopen(filename, "r");
+
+	file = fopen(filename, "r");
 	//deal with error 3 file couldnt open
 	if (!file)
 	{
@@ -461,6 +503,7 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 		fflush(NULL);
 		return NULL;
 	}
+
 	SPConfig config = spConfigInit();
 	if (!config)
 	{
@@ -468,102 +511,33 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 		fclose(file);
 		return NULL;
 	}
-	while ( fgets ( input, sizeof(input), file ) != NULL )
+
+	input = (char*)malloc((MAX_LINE_LENGTH + 1)* sizeof(char));
+	if (!input)
 	{
-		strtok(input, "\n");
-		index_of_equal = strchr(input,EQUAL_MARK);
-		// if '=' exist
-		if (index_of_equal)
-		{
-			*index_of_equal= '\0';
-			index_of_equal++;
-		}
-		temp_variable = (char*)malloc((strlen(input) + 1) * sizeof(char));
-		strcpy(temp_variable,input);
-		// if '=' not exist we need to check if its comment line,empty line or an error
-		variable_name = spCleaningString(temp_variable,msg,filename,line_counter);
-		free(temp_variable);
-		if(variable_name == NULL)
-		{
-
-			spConfigDestroy(config);
-			fclose(file);
-			return NULL;
-		}
-		// if SKIP return meens this is a comment line need to be skipped
-		else if (strcmp(variable_name,SKIP) == 0)
-		{
-			free(variable_name);
-			line_counter++;
-			continue;
-		}
-		// check if this is an empty line if yes need to skip
-		else if ((strcmp(variable_name,SKIP_EMPTY_LINE) == 0) && (!index_of_equal))
-		{
-			free(variable_name);
-			line_counter++;
-			continue;
-		}
-		// if we got here means we have an error no '=' in the line
-		else if (!index_of_equal)
-		{
-			*msg = SP_CONFIG_INVALID_STRING;
-			spRegularErrorPrinter(filename,line_counter,0,DUMMY);
-			free(variable_name);
-			spConfigDestroy(config);
-			fclose(file);
-			return NULL;
-		}
-		else
-		{
-			temp_variable = (char*)malloc((strlen(index_of_equal) + 1) * sizeof(char));
-			strcpy(temp_variable,index_of_equal);
-			variable_value = spCleaningString(index_of_equal,msg,filename,line_counter);
-			free(temp_variable);
-		}
-
-		if ((variable_value == NULL)||(strcmp(variable_value,SKIP) == 0))
-		{
-			*msg = SP_CONFIG_INVALID_STRING;
-			spRegularErrorPrinter(filename,line_counter,0,DUMMY);
-			free(variable_name);
-			free(variable_value);
-			spConfigDestroy(config);
-			fclose(file);
-			return NULL;
-		}
-		else if (strcmp(variable_value,SKIP_EMPTY_LINE) == 0)
-		{
-			free(variable_name);
-			free(variable_value);
-			line_counter++;
-			continue;
-		}
-		/*
-		 * Check if we succeeded to assign the argument :
-		 * 0-> if constraint not met
-		 * 1-> if succeeded
-		 * 2-> if the variable name is not one of the config fields
-		 * 3-> if memory allocate fail
-		 *
-		 *
-		 */
-		succeeded = spAssignArgument(config, variable_name, variable_value,
-				msg, line_counter, filename);
-		//	TODO: CHECK WHY CRASH
-		//	free(variable_name);
-		//	free(variable_value);
-		if (succeeded != 1)
-		{
-			fclose(file);
-			return NULL;
-
-		}
-		else
-		{
-			line_counter++;
-		}
+		// TODO: handle
 	}
+
+	while (fgets(input, MAX_LINE_LENGTH + 1, file) != NULL)
+	{
+		tmpInput = input;
+
+		if ((newLinePointer = strchr(tmpInput, '\n'/*NEW_LINE*/)) != NULL)
+		{
+		    *newLinePointer = NULL_TERMINATE;
+		}
+
+		trimWhitespace(tmpInput);
+
+		if ((*tmpInput != COMMENT_MARK) && (*tmpInput != NULL_TERMINATE))
+		{
+			proccesAssignmentLine(config, tmpInput, filename, line_counter, msg);
+		}
+
+		line_counter++;
+	}
+
+	free(input);
 	fclose(file);
 	// check all must initiate variables were initiate
 	isDefuatInit = spIsDefaultInitiate(filename, msg, config, line_counter);
