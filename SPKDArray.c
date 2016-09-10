@@ -160,7 +160,7 @@ SPKDArray spKDArrayInit(SPPoint* arr, int size)
 		kdArray->points[i] = point;
 	}
 
-	//
+	// Sorting each dimension indexes
 	for (i = 0; i < pointsDim; ++i)
 	{
 		 if (!sortPointIndexesByDim(kdArray, i))
@@ -175,20 +175,24 @@ SPKDArray spKDArrayInit(SPPoint* arr, int size)
 	return kdArray;
 }
 
-void fillMatFromParent(SPKDArray kdLeft, SPKDArray kdRight, SPKDArray kdParent,
+bool fillMatFromParent(SPKDArray kdLeft, SPKDArray kdRight, SPKDArray kdParent,
 		int* leftIndexMap, int* rightIndexMap)
 {
 	int i = 0;
 	int j = 0;
-	int pointsDim = spPointGetDimension(kdParent->points[0]);
 	int leftCurrRowPos = 0;
 	int rightCurrRowPos = 0;
 	int currIndex = MAP_NOT_EXIST;
+	//TODO: check if has to be spPCADim
+	int pointsDim = spPointGetDimension(kdParent->points[0]);
 
+	// Memory allocation of left kdArray index matrix
 	kdLeft->dimsSortedIndexesMat = (int**)malloc(kdLeft->size * sizeof(int*));
 	if (!kdLeft->dimsSortedIndexesMat)
 	{
-		// TODO: handle
+		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
+
+		return false;
 	}
 
 	for(i = 0; i < kdLeft->size; ++i)
@@ -196,14 +200,19 @@ void fillMatFromParent(SPKDArray kdLeft, SPKDArray kdRight, SPKDArray kdParent,
 		kdLeft->dimsSortedIndexesMat[i] = (int*)malloc(pointsDim * sizeof(int));
 		if (!kdLeft->dimsSortedIndexesMat[i])
 		{
-			// TODO: handle
+			spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
+
+			return false;
 		}
 	}
 
+	// Memory allocation of right kdArray index matrix
 	kdRight->dimsSortedIndexesMat = (int**)malloc(kdRight->size * sizeof(int*));
 	if (!kdRight->dimsSortedIndexesMat)
 	{
-		// TODO: handle
+		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
+
+		return false;
 	}
 
 	for(i = 0; i < kdRight->size; ++i)
@@ -211,23 +220,31 @@ void fillMatFromParent(SPKDArray kdLeft, SPKDArray kdRight, SPKDArray kdParent,
 		kdRight->dimsSortedIndexesMat[i] = (int*)malloc(pointsDim * sizeof(int));
 		if (!kdRight->dimsSortedIndexesMat[i])
 		{
-			// TODO: handle
+			spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
+
+			return false;
 		}
 	}
 
+	// Iterating over each of the dimensions
 	for (i = 0; i < pointsDim; ++i)
 	{
+		// Foreach dimension iterating over the parent array sorted indexes for the dim
 		for (j = 0; j < kdParent->size; ++j)
 		{
 			currIndex = kdParent->dimsSortedIndexesMat[j][i];
 
+			// If current index is mapped to left child array
 			if (leftIndexMap[currIndex] != MAP_NOT_EXIST)
 			{
+				// Placing the "translated" index in the left matrix
 				kdLeft->dimsSortedIndexesMat[leftCurrRowPos][i] = leftIndexMap[currIndex];
 				leftCurrRowPos++;
 			}
+			// Mapped to right child array
 			else
 			{
+				// Placing the "translated" index in the right matrix
 				kdRight->dimsSortedIndexesMat[rightCurrRowPos][i] = rightIndexMap[currIndex];
 				rightCurrRowPos++;
 			}
@@ -236,8 +253,13 @@ void fillMatFromParent(SPKDArray kdLeft, SPKDArray kdRight, SPKDArray kdParent,
 		leftCurrRowPos = 0;
 		rightCurrRowPos = 0;
 	}
+
+	return true;
 }
 
+/**
+ * Frees all passed indexes map arrays if allocated
+ */
 void freeIndexMaps(int* indexMapToSide, int* indexMapLeft, int* indexMapRight)
 {
 	if (indexMapRight)
@@ -266,6 +288,7 @@ bool spKDArraySplit(SPKDArray kdArr, int axis, SPKDArray* kdLeft, SPKDArray* kdR
 	int* indexMapRight = NULL;
 	int i = 0;
 	int pointIndex = MAP_NOT_EXIST;
+	bool matrixCopySuccess = true;
 
 	// Checking for argument validity
 	if (!kdArr || !kdLeft || !kdRight)
@@ -366,6 +389,7 @@ bool spKDArraySplit(SPKDArray kdArr, int axis, SPKDArray* kdLeft, SPKDArray* kdR
 	// Creating the left and right KDArrays
 	for (i = 0; i < kdArr->size; ++i)
 	{
+		// Copying each point of the parent array
 		currPoint = spPointCopy(kdArr->points[i]);
 		if (!currPoint)
 		{
@@ -375,31 +399,37 @@ bool spKDArraySplit(SPKDArray kdArr, int axis, SPKDArray* kdLeft, SPKDArray* kdR
 			return false;
 		}
 
+		// Selecting in which "child" array to place the copied point (left/right)
 		if (indexMapToSide[i] == 0)
 		{
 			(*kdLeft)->points[leftIndex] = currPoint;
+			// Mapping the parent index to the left index the point received
 			indexMapLeft[i] = leftIndex;
 			leftIndex++;
 		}
 		else
 		{
 			(*kdRight)->points[rightIndex] = currPoint;
+			// Mapping the parent index to the right index the point received
 			indexMapRight[i] = rightIndex;
 			rightIndex++;
 		}
 	}
 
-	fillMatFromParent(*kdLeft, *kdRight, kdArr, indexMapLeft, indexMapRight);
+	// Filling the left and right index matrixes according to parent matrix (in O(n * d))
+	matrixCopySuccess = fillMatFromParent(*kdLeft, *kdRight, kdArr, indexMapLeft, indexMapRight);
 
+	// Free all index maps arrays
 	freeIndexMaps(indexMapToSide, indexMapLeft, indexMapRight);
 
-	return true;
+	return matrixCopySuccess;
 }
 
 void spKDArrayDestroy(SPKDArray kdArr)
 {
 	int i = 0;
 
+	// Frees all the points of the array if allocated
 	if (kdArr->points)
 	{
 		for (i = 0; i < kdArr->size; ++i)
@@ -410,9 +440,11 @@ void spKDArrayDestroy(SPKDArray kdArr)
 			}
 		}
 
+		// Frees the array point itself
 		free(kdArr->points);
 	}
 
+	// Frees the index matrix if exists
 	if (kdArr->dimsSortedIndexesMat)
 	{
 		for (i = 0; i < kdArr->size; ++i)
@@ -426,6 +458,7 @@ void spKDArrayDestroy(SPKDArray kdArr)
 		free(kdArr->dimsSortedIndexesMat);
 	}
 
+	// Frees the array object
 	free(kdArr);
 }
 
@@ -472,20 +505,27 @@ SPKDArray spKDSplittedArrayGetLeft(SPKDSplittedArray kdSplittedArray)
 int spKDSArrayGetMaxSpreadDimension(SPKDArray kdArray)
 {
 	int i = 0;
-	int maxSpreadDim = INVALID_VALUE;
+	int maxSpreadDim = 0;
 	double maxSpread = 0;
 	double currDimSpread = 0;
 
+	// Checking arguments validity
 	if (!kdArray || !kdArray->points || !kdArray->dimsSortedIndexesMat || kdArray->size == 0)
 	{
 		return INVALID_VALUE;
 	}
 
+	// Iterating over each of the dimensions of the kdArray
+	// TODO: check if should be spPCADim
 	for (i = 0; i < spPointGetDimension(kdArray->points[0]); ++i)
 	{
+		// Getting the max coord value of the i'th axis and the min one, calculating the spread
+		// which is the distance between them
 		currDimSpread = spPointGetAxisCoor(kdArray->points[kdArray->dimsSortedIndexesMat[kdArray->size - 1][i]], i) -
 				spPointGetAxisCoor(kdArray->points[kdArray->dimsSortedIndexesMat[0][i]], i);
 
+		// if the current dimension spread is bigger than the one already found store this
+		// Dim as the max spread dim and it's spread as the max spread
 		if (currDimSpread > maxSpread)
 		{
 			maxSpread = currDimSpread;
