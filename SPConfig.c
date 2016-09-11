@@ -101,8 +101,7 @@ void spRegularErrorPrinter(const char* filename, int line,int ErrorTypeNum, char
 	}
 
 }
-bool checkspImagesDirectory (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
-		const char* filename)
+bool setspImagesDirectory (SPConfig config, char* variable_value, SP_CONFIG_MSG* msg)
 {
 	config->spImagesDirectory = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
 	if (!config->spImagesDirectory)
@@ -114,8 +113,7 @@ bool checkspImagesDirectory (SPConfig config, char* variable_name, char* variabl
 	strcpy(config->spImagesDirectory,variable_value);
 	return true;
 }
-bool checkspImagesPrefix (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
-		const char* filename)
+bool setspImagesPrefix (SPConfig config, char* variable_value, SP_CONFIG_MSG* msg)
 {
 	config->spImagesPrefix = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
 	if (!config->spImagesPrefix)
@@ -127,7 +125,7 @@ bool checkspImagesPrefix (SPConfig config, char* variable_name, char* variable_v
 	strcpy(config->spImagesPrefix,variable_value);
 	return true;
 }
-bool checkspImagesSuffix (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+bool setspImagesSuffix (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, int line,
 		const char* filename)
 {
 	if ((strcmp(variable_value,SUFFIX_JPEG)== 0) || (strcmp(variable_value,SUFFIX_PNG)== 0)||
@@ -150,7 +148,7 @@ bool checkspImagesSuffix (SPConfig config, char* variable_name, char* variable_v
 		return false;
 	}
 }
-bool checkspNumOfImages (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+bool setspNumOfImages (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, int line,
 		const char* filename)
 {
 	if (atoi(variable_value) > 0)
@@ -165,7 +163,7 @@ bool checkspNumOfImages (SPConfig config, char* variable_name, char* variable_va
 		return false;
 	}
 }
-bool checkspPCADimension (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+bool setspPCADimension (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, int line,
 		const char* filename)
 {
 	if ((atoi(variable_value) > SP_PCA_DIMENSION_CONSTRAINT_LOW )&&
@@ -181,8 +179,7 @@ bool checkspPCADimension (SPConfig config, char* variable_name, char* variable_v
 		return false;
 	}
 }
-bool checkspPCAFilename (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
-		const char* filename)
+bool setspPCAFilename (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg)
 {
 	free(config->spPCAFilename);
 	config->spPCAFilename = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
@@ -194,7 +191,7 @@ bool checkspPCAFilename (SPConfig config, char* variable_name, char* variable_va
 	strcpy(config->spPCAFilename,variable_value);
 	return true;
 }
-bool checkspNumOfFeatures (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+bool setspNumOfFeatures (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, int line,
 		const char* filename)
 {
 	if (atoi(variable_value) > 0)
@@ -209,7 +206,7 @@ bool checkspNumOfFeatures (SPConfig config, char* variable_name, char* variable_
 		return false;
 	}
 }
-bool checkspExtractionMode (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+bool setspExtractionMode (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, int line,
 		const char* filename)
 {
 	if (strcmp(variable_value,MODE_TRUE)== 0)
@@ -231,7 +228,7 @@ bool checkspExtractionMode (SPConfig config, char* variable_name, char* variable
 		return false;
 	}
 }
-bool checkspNumOfSimilarImages (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+bool setspNumOfSimilarImages (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, int line,
 			const char* filename)
 {
 	if(atoi(variable_value) > 0)
@@ -247,7 +244,7 @@ bool checkspNumOfSimilarImages (SPConfig config, char* variable_name, char* vari
 	}
 }
 
-bool checkspKDTreeSplitMethod (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+bool setspKDTreeSplitMethod (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, int line,
 			const char* filename)
 {
 	if (! strcmp(variable_value, SPLIT_METHOD_RANDOM))
@@ -271,7 +268,7 @@ bool checkspKDTreeSplitMethod (SPConfig config, char* variable_name, char* varia
 	return true;
 }
 
-bool checkspKNN (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+bool setspKNN (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, int line,
 			const char* filename)
 {
 	if(atoi(variable_value) > 0)
@@ -286,7 +283,7 @@ bool checkspKNN (SPConfig config, char* variable_name, char* variable_value,SP_C
 		return false;
 	}
 }
-bool checkspMinimalGUI (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+bool setspMinimalGUI (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, int line,
 			const char* filename)
 {
 	if (strcmp(variable_value,MODE_TRUE)== 0)
@@ -305,7 +302,7 @@ bool checkspMinimalGUI (SPConfig config, char* variable_name, char* variable_val
 	}
 	return true;
 }
-bool checkspLoggerLevel (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+bool setspLoggerLevel (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, int line,
 			const char* filename)
 {
 	if ((atoi(variable_value) > LOGGER_LEVEL_MIN) && (atoi(variable_value) < LOGGER_LEVEL_MAX))
@@ -320,8 +317,7 @@ bool checkspLoggerLevel (SPConfig config, char* variable_name, char* variable_va
 		return false;
 	}
 }
-bool checkspLoggerFilename (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
-			const char* filename)
+bool setspLoggerFilename (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg)
 {
 	free(config->spLoggerFilename);
 	config->spLoggerFilename = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
@@ -335,65 +331,65 @@ bool checkspLoggerFilename (SPConfig config, char* variable_name, char* variable
 }
 
 
-bool spAssignArgument(SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+bool spAssignArgument(SPConfig config, char* variable_name, char* variable_value, SP_CONFIG_MSG* msg, int line,
 		const char* filename)
 {
 
 	if (! strcmp(variable_name,SP_IMAGES_DIRECTORY))
 	{
-		return checkspImagesDirectory(config, variable_name, variable_value, msg, line, filename);
+		return setspImagesDirectory(config, variable_value, msg);
 	}
 	else if (! strcmp(variable_name,SP_IMAGES_PREFIX))
 	{
-		return checkspImagesPrefix(config, variable_name, variable_value, msg, line, filename);
+		return setspImagesPrefix(config, variable_value, msg);
 	}
 	else if (! strcmp(variable_name,SP_IMAGES_SUFFIX))
 	{
-		return checkspImagesSuffix(config, variable_name, variable_value, msg, line, filename);
+		return setspImagesSuffix(config, variable_value, msg, line, filename);
 	}
 	else if (! strcmp(variable_name,SP_NUM_OF_IMAGES))
 	{
-		return checkspNumOfImages(config, variable_name, variable_value, msg, line, filename);
+		return setspNumOfImages(config, variable_value, msg, line, filename);
 	}
 	else if (! strcmp(variable_name,SP_PCA_DIMENSION))
 	{
-		return checkspPCADimension(config, variable_name, variable_value, msg, line, filename);
+		return setspPCADimension(config, variable_value, msg, line, filename);
 	}
 	else if (! strcmp(variable_name,SP_PCA_FILE_NAME))
 	{
-		return checkspPCAFilename(config, variable_name, variable_value, msg, line, filename);
+		return setspPCAFilename(config, variable_value, msg);
 	}
 	else if (!strcmp(variable_name, SP_NUM_OF_FEATURES))
 	{
-		return checkspNumOfFeatures(config, variable_name, variable_value, msg, line, filename);
+		return setspNumOfFeatures(config, variable_value, msg, line, filename);
 	}
 	else if (! strcmp(variable_name,SP_EXTRACTION_MODE))
 	{
-		return checkspExtractionMode(config, variable_name, variable_value, msg, line, filename);
+		return setspExtractionMode(config, variable_value, msg, line, filename);
 	}
 	else if (! strcmp(variable_name,SP_NUM_OF_SIMILAR_IMAGES))
 	{
-		return checkspNumOfSimilarImages(config, variable_name, variable_value, msg, line, filename);
+		return setspNumOfSimilarImages(config, variable_value, msg, line, filename);
 	}
 	else if (!strcmp(variable_name,SP_KD_TREE_SPLIT_METHOD))
 	{
-		return checkspKDTreeSplitMethod(config, variable_name, variable_value, msg, line, filename);
+		return setspKDTreeSplitMethod(config, variable_value, msg, line, filename);
 	}
 	else if (! strcmp(variable_name,SP_KNN))
 	{
-		return checkspKNN(config, variable_name, variable_value, msg, line, filename);
+		return setspKNN(config, variable_value, msg, line, filename);
 	}
 	else if (! strcmp(variable_name,SP_MINMIMAL_GUI))
 	{
-		return checkspMinimalGUI(config, variable_name, variable_value, msg, line, filename);
+		return setspMinimalGUI(config, variable_value, msg, line, filename);
 	}
 	else if (! strcmp(variable_name,SP_LOGGER_LEVEL))
 	{
-		return checkspLoggerLevel(config, variable_name, variable_value, msg, line, filename);
+		return setspLoggerLevel(config, variable_value, msg, line, filename);
 	}
 	else if (! strcmp(variable_name,SP_LOGGER_FILE_NAME))
 	{
-		return checkspLoggerFilename(config, variable_name, variable_value, msg, line, filename);
+		return setspLoggerFilename(config, variable_value, msg);
 	}
 	else
 	{
@@ -405,35 +401,47 @@ bool spAssignArgument(SPConfig config, char* variable_name, char* variable_value
 
 char* trimWhitespace(char *str)
 {
-  char *end;
+	char *end;
 
-  // Trim leading space
-  while(isspace(*str)) str++;
+	// Trim leading space
+	while(isspace(*str))
+	{
+		str++;
+	}
 
-  if(*str == 0)  // All spaces?
-    return str;
+	// if all whitespaces
+	if(*str == 0)
+	{
+		return str;
+	}
 
-  // Trim trailing space
-  end = str + strlen(str) - 1;
-  while(end > str && isspace(*end)) end--;
+	// Trim trailing space
+	end = str + strlen(str) - 1;
+	while(end > str && isspace(*end))
+	{
+		end--;
+	}
 
-  // Write new null terminator
-  *(end+1) = 0;
+	// Write new null terminator
+	*(end+1) = 0;
 
-  return str;
+	return str;
 }
 
 char* cleanAssignmentOperand(char* str, SP_CONFIG_MSG* msg, const char* filename, int line)
 {
 	char* result = NULL;
 	int i = 0;
+	char* trimmedStr = NULL;
+	int length = 0;
 
-	trimWhitespace(str);
+	trimmedStr = trimWhitespace(str);
+	length = strlen(trimmedStr);
 
-	for (i = 0; i < strlen(str); i++)
+	for (i = 0; i < length; i++)
 	{
 		//	checking if the letter is # and in the middle
-		if( (str[i] == COMMENT_MARK) || isspace(str[i]))
+		if( (trimmedStr[i] == COMMENT_MARK) || isspace(trimmedStr[i]))
 		{
 			*msg = SP_CONFIG_INVALID_STRING;
 			spRegularErrorPrinter(filename, line, 0, DUMMY);
@@ -441,13 +449,13 @@ char* cleanAssignmentOperand(char* str, SP_CONFIG_MSG* msg, const char* filename
 		}
 	}
 
-	result = (char*)malloc((strlen(str) + 1) * sizeof(char));
+	result = (char*)malloc((strlen(trimmedStr) + 1) * sizeof(char));
 	if (!result)
 	{
 		// TODO: handle
 	}
 
-	strcpy(result, str);
+	strcpy(result, trimmedStr);
 
 	return result;
 }
@@ -500,7 +508,6 @@ bool proccesAssignmentLine(SPConfig config, const char* line, const char* filena
 	if (!spAssignArgument(config, variableName, variableValue,
 			configMsg, lineNumber, filename))
 	{
-		spConfigDestroy(config);
 		return false;
 	}
 
@@ -557,11 +564,17 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 		    *newLinePointer = NULL_TERMINATE;
 		}
 
-		trimWhitespace(tmpInput);
+		tmpInput = trimWhitespace(tmpInput);
 
 		if ((*tmpInput != COMMENT_MARK) && (*tmpInput != NULL_TERMINATE))
 		{
-			proccesAssignmentLine(config, tmpInput, filename, line_counter, msg);
+			if (!proccesAssignmentLine(config, tmpInput, filename, line_counter, msg))
+			{
+				spConfigDestroy(config);
+				free(input);
+				fclose(file);
+				return false;
+			}
 		}
 
 		line_counter++;
