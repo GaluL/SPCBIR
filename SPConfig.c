@@ -101,267 +101,306 @@ void spRegularErrorPrinter(const char* filename, int line,int ErrorTypeNum, char
 	}
 
 }
+bool checkspImagesDirectory (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+		const char* filename)
+{
+	config->spImagesDirectory = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
+	if (!config->spImagesDirectory)
+	{
+		*msg = SP_CONFIG_ALLOC_FAIL;
+		return false;
+	}
+
+	strcpy(config->spImagesDirectory,variable_value);
+	return true;
+}
+bool checkspImagesPrefix (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+		const char* filename)
+{
+	config->spImagesPrefix = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
+	if (!config->spImagesPrefix)
+	{
+		*msg = SP_CONFIG_ALLOC_FAIL;
+		return false;
+	}
+
+	strcpy(config->spImagesPrefix,variable_value);
+	return true;
+}
+bool checkspImagesSuffix (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+		const char* filename)
+{
+	if ((strcmp(variable_value,SUFFIX_JPEG)== 0) || (strcmp(variable_value,SUFFIX_PNG)== 0)||
+			(strcmp(variable_value,SUFFIX_BMP)== 0) || (strcmp(variable_value,SUFFIX_GIF)== 0))
+	{
+		config->spImagesSuffix = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
+		if (!config->spImagesSuffix)
+		{
+			//TODO THINK WHAT TO DO HERE
+			*msg = SP_CONFIG_ALLOC_FAIL;
+			return false;
+		}
+		strcpy(config->spImagesSuffix,variable_value);
+		return true;
+	}
+	else
+	{
+		*msg = SP_CONFIG_INVALID_STRING;
+		spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
+		return false;
+	}
+}
+bool checkspNumOfImages (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+		const char* filename)
+{
+	if (atoi(variable_value) > 0)
+	{
+		config->spNumOfImages = atoi(variable_value);
+		return true;
+	}
+	else
+	{
+		*msg = SP_CONFIG_INVALID_INTEGER;
+		spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
+		return false;
+	}
+}
+bool checkspPCADimension (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+		const char* filename)
+{
+	if ((atoi(variable_value) > SP_PCA_DIMENSION_CONSTRAINT_LOW )&&
+					(atoi(variable_value) < SP_PCA_DIMENSION_CONSTRAINT_HIGH))
+	{
+		config->spPCADimension = atoi(variable_value);
+		return true;
+	}
+	else
+	{
+		*msg = SP_CONFIG_INVALID_INTEGER;
+		spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
+		return false;
+	}
+}
+bool checkspPCAFilename (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+		const char* filename)
+{
+	free(config->spPCAFilename);
+	config->spPCAFilename = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
+	if (!config->spPCAFilename)
+	{
+		*msg = SP_CONFIG_ALLOC_FAIL;
+		return false;
+	}
+	strcpy(config->spPCAFilename,variable_value);
+	return true;
+}
+bool checkspNumOfFeatures (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+		const char* filename)
+{
+	if (atoi(variable_value) > 0)
+	{
+		config->spNumOfFeatures = atoi(variable_value);
+		return true;
+	}
+	else
+	{
+		*msg = SP_CONFIG_INVALID_INTEGER;
+		spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
+		return false;
+	}
+}
+bool checkspExtractionMode (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+		const char* filename)
+{
+	if (strcmp(variable_value,MODE_TRUE)== 0)
+	{
+		config->spExtractionMode = true;
+
+		return true;
+	}
+	else if (strcmp(variable_value,MODE_FALSE)== 0)
+	{
+		config->spExtractionMode = false;
+
+		return true;
+	}
+	else
+	{
+		*msg = SP_CONFIG_INVALID_STRING;
+		spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
+		return false;
+	}
+}
+bool checkspNumOfSimilarImages (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+			const char* filename)
+{
+	if(atoi(variable_value) > 0)
+	{
+		config->spNumOfSimilarImages  = atoi(variable_value);
+		return true;
+	}
+	else
+	{
+		*msg = SP_CONFIG_INVALID_INTEGER;
+		spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
+		return false;
+	}
+}
+
+bool checkspKDTreeSplitMethod (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+			const char* filename)
+{
+	if (! strcmp(variable_value, SPLIT_METHOD_RANDOM))
+	{
+		config->spKDTreeSplitMethod  = RANDOM;
+	}
+	else if (! strcmp(variable_value, SPLIT_METHOD_MAX_SPREAD))
+	{
+		config->spKDTreeSplitMethod  = MAX_SPREAD;
+	}
+	else if (! strcmp(variable_value, SPLIT_METHOD_MAX_INCREMENTAL))
+	{
+		config->spKDTreeSplitMethod  = INCREMENTAL;
+	}
+	else
+	{
+		*msg = SP_CONFIG_INVALID_STRING;
+		spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
+		return false;
+	}
+	return true;
+}
+
+bool checkspKNN (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+			const char* filename)
+{
+	if(atoi(variable_value) > 0)
+	{
+		config->spKNN = atoi(variable_value);
+		return true;
+	}
+	else
+	{
+		*msg = SP_CONFIG_INVALID_INTEGER;
+		spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
+		return false;
+	}
+}
+bool checkspMinimalGUI (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+			const char* filename)
+{
+	if (strcmp(variable_value,MODE_TRUE)== 0)
+	{
+		config->spMinimalGUI = true;
+	}
+	else if (strcmp(variable_value,MODE_FALSE)== 0)
+	{
+		config->spMinimalGUI = false;
+	}
+	else
+	{
+		*msg = SP_CONFIG_INVALID_STRING;
+		spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
+		return false;
+	}
+	return true;
+}
+bool checkspLoggerLevel (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+			const char* filename)
+{
+	if ((atoi(variable_value) > LOGGER_LEVEL_MIN) && (atoi(variable_value) < LOGGER_LEVEL_MAX))
+	{
+		config->spLoggerLevel = atoi(variable_value);
+		return true;
+	}
+	else
+	{
+		*msg = SP_CONFIG_INVALID_INTEGER;
+		spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
+		return false;
+	}
+}
+bool checkspLoggerFilename (SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+			const char* filename)
+{
+	free(config->spLoggerFilename);
+	config->spLoggerFilename = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
+	if (!config->spLoggerFilename)
+	{
+		*msg = SP_CONFIG_ALLOC_FAIL;
+		return false;
+	}
+	strcpy(config->spLoggerFilename,variable_value);
+	return true;
+}
+
 
 bool spAssignArgument(SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
 		const char* filename)
 {
-	int i = 2;
+
 	if (! strcmp(variable_name,SP_IMAGES_DIRECTORY))
 	{
-		config->spImagesDirectory = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
-		if (!config->spImagesDirectory)
-		{
-			*msg = SP_CONFIG_ALLOC_FAIL;
-			spConfigDestroy(config);
-			return false;
-		}
-		strcpy(config->spImagesDirectory,variable_value);
-
-		return true;
+		return checkspImagesDirectory(config, variable_name, variable_value, msg, line, filename);
 	}
 	else if (! strcmp(variable_name,SP_IMAGES_PREFIX))
 	{
-		config->spImagesPrefix = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
-		if (!config->spImagesPrefix)
-		{
-			*msg = SP_CONFIG_ALLOC_FAIL;
-			spConfigDestroy(config);
-			return false;
-		}
-		strcpy(config->spImagesPrefix,variable_value);
-
-		return true;
+		return checkspImagesPrefix(config, variable_name, variable_value, msg, line, filename);
 	}
 	else if (! strcmp(variable_name,SP_IMAGES_SUFFIX))
 	{
-		if ((strcmp(variable_value,SUFFIX_JPEG)== 0) || (strcmp(variable_value,SUFFIX_PNG)== 0)|| \
-				(strcmp(variable_value,SUFFIX_BMP)== 0) || (strcmp(variable_value,SUFFIX_GIF)== 0))
-		{
-			config->spImagesSuffix = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
-			if (!config->spImagesSuffix)
-			{
-				*msg = SP_CONFIG_ALLOC_FAIL;
-				spConfigDestroy(config);
-				return false;
-			}
-			strcpy(config->spImagesSuffix,variable_value);
-
-			return true;
-		}
-		else
-		{
-			*msg = SP_CONFIG_INVALID_STRING;
-			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
-			spConfigDestroy(config);
-			return false;
-		}
+		return checkspImagesSuffix(config, variable_name, variable_value, msg, line, filename);
 	}
 	else if (! strcmp(variable_name,SP_NUM_OF_IMAGES))
 	{
-		if (atoi(variable_value) > 0)
-		{
-			config->spNumOfImages = atoi(variable_value);
-			i = 1;
-			return false;
-		}
-		else
-		{
-			*msg = SP_CONFIG_INVALID_INTEGER;
-			spRegularErrorPrinter(filename,line,1,DUMMY);
-			spConfigDestroy(config);
-			return false;
-		}
+		return checkspNumOfImages(config, variable_name, variable_value, msg, line, filename);
 	}
 	else if (! strcmp(variable_name,SP_PCA_DIMENSION))
 	{
-		if ((atoi(variable_value) > SP_PCA_DIMENSION_CONSTRAINT_LOW )&& \
-				(atoi(variable_value) < SP_PCA_DIMENSION_CONSTRAINT_HIGH))
-		{
-			config->spPCADimension = atoi(variable_value);
-
-			return true;
-		}
-		else
-		{
-			*msg = SP_CONFIG_INVALID_INTEGER;
-			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
-			spConfigDestroy(config);
-			return false;
-		}
+		return checkspPCADimension(config, variable_name, variable_value, msg, line, filename);
 	}
 	else if (! strcmp(variable_name,SP_PCA_FILE_NAME))
 	{
-		free(config->spPCAFilename);
-		config->spPCAFilename = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
-		if (!config->spPCAFilename)
-		{
-			*msg = SP_CONFIG_ALLOC_FAIL;
-			spConfigDestroy(config);
-			return false;
-		}
-		strcpy(config->spPCAFilename,variable_value);
-
-		return true;
+		return checkspPCAFilename(config, variable_name, variable_value, msg, line, filename);
 	}
 	else if (!strcmp(variable_name, SP_NUM_OF_FEATURES))
 	{
-		if (atoi(variable_value) > 0)
-		{
-			config->spNumOfFeatures = atoi(variable_value);
-		}
-		else
-		{
-			*msg = SP_CONFIG_INVALID_INTEGER;
-			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
-			spConfigDestroy(config);
-			return false;
-		}
-
-		return true;
+		return checkspNumOfFeatures(config, variable_name, variable_value, msg, line, filename);
 	}
 	else if (! strcmp(variable_name,SP_EXTRACTION_MODE))
 	{
-		if (strcmp(variable_value,"true")== 0)
-		{
-			config->spExtractionMode = true;
-
-			return true;
-		}
-		else if (strcmp(variable_value,"false")== 0)
-		{
-			config->spExtractionMode = false;
-
-			return true;
-		}
-		else
-		{
-			*msg = SP_CONFIG_INVALID_STRING;
-			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
-			spConfigDestroy(config);
-
-			return false;
-		}
-
+		return checkspExtractionMode(config, variable_name, variable_value, msg, line, filename);
 	}
 	else if (! strcmp(variable_name,SP_NUM_OF_SIMILAR_IMAGES))
 	{
-		if(atoi(variable_value) > 0)
-		{
-			config->spNumOfSimilarImages  = atoi(variable_value);
-
-			return true;
-		}
-		else
-		{
-			*msg = SP_CONFIG_INVALID_INTEGER;
-			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
-			spConfigDestroy(config);
-			return false;
-		}
-
+		return checkspNumOfSimilarImages(config, variable_name, variable_value, msg, line, filename);
 	}
 	else if (!strcmp(variable_name,SP_KD_TREE_SPLIT_METHOD))
 	{
-		if (strcmp(variable_value,"RANDOM"))
-		{
-			config->spKDTreeSplitMethod  = RANDOM;
-		}
-		else if (strcmp(variable_value,"MAX_SPREAD"))
-		{
-			config->spKDTreeSplitMethod  = MAX_SPREAD;
-		}
-		else if (strcmp(variable_value,"INCREMENTAL"))
-		{
-			config->spKDTreeSplitMethod  = INCREMENTAL;
-		}
-		else
-		{
-			*msg = SP_CONFIG_INVALID_STRING;
-			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
-			spConfigDestroy(config);
-			return false;
-		}
-
-		return true;
+		return checkspKDTreeSplitMethod(config, variable_name, variable_value, msg, line, filename);
 	}
 	else if (! strcmp(variable_name,SP_KNN))
 	{
-		if(atoi(variable_value) > 0)
-		{
-			config->spKNN = atoi(variable_value);
-		}
-		else
-		{
-			*msg = SP_CONFIG_INVALID_INTEGER;
-			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
-			spConfigDestroy(config);
-			return false;
-		}
-
-		return true;
+		return checkspKNN(config, variable_name, variable_value, msg, line, filename);
 	}
 	else if (! strcmp(variable_name,SP_MINMIMAL_GUI))
 	{
-		if (strcmp(variable_value,"true")== 0)
-		{
-			config->spMinimalGUI = true;
-
-			return true;
-		}
-		else if (strcmp(variable_value,"false")== 0)
-		{
-			config->spMinimalGUI = false;
-			i = 1;
-			return true;
-		}
-		else
-		{
-			*msg = SP_CONFIG_INVALID_STRING;
-			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
-			spConfigDestroy(config);
-			return false;
-		}
-
+		return checkspMinimalGUI(config, variable_name, variable_value, msg, line, filename);
 	}
 	else if (! strcmp(variable_name,SP_LOGGER_LEVEL))
 	{
-		if ((atoi(variable_value) > 0) && (atoi(variable_value) < 5))
-		{
-			config->spLoggerLevel = atoi(variable_value);
-		}
-		else
-		{
-			*msg = SP_CONFIG_INVALID_INTEGER;
-			spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
-			spConfigDestroy(config);
-			return false;
-		}
-
-		return true;
+		return checkspLoggerLevel(config, variable_name, variable_value, msg, line, filename);
 	}
 	else if (! strcmp(variable_name,SP_LOGGER_FILE_NAME))
 	{
-		free(config->spLoggerFilename);
-		config->spLoggerFilename = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
-		if (!config->spLoggerFilename)
-		{
-			*msg = SP_CONFIG_ALLOC_FAIL;
-			spConfigDestroy(config);
-			return false;
-		}
-		strcpy(config->spLoggerFilename,variable_value);
-
-		return true;
+		return checkspLoggerFilename(config, variable_name, variable_value, msg, line, filename);
 	}
-	if (i == 2)
+	else
 	{
 		*msg = SP_CONFIG_INVALID_STRING;
 		spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_INVALID_CONFIGURATION_LINE,DUMMY);
-		spConfigDestroy(config);
 		return false;
 	}
-
-	return true;
 }
 
 char* trimWhitespace(char *str)
@@ -458,19 +497,10 @@ bool proccesAssignmentLine(SPConfig config, const char* line, const char* filena
 	free(tmpVariableName);
 	free(tmpVariableValue);
 
-	/*
-	 * Check if we succeeded to assign the argument :
-	 * 0-> if constraint not met
-	 * 1-> if succeeded
-	 * 2-> if the variable name is not one of the config fields
-	 * 3-> if memory allocate fail
-	 *
-	 *
-	 */
 	if (!spAssignArgument(config, variableName, variableValue,
 			configMsg, lineNumber, filename))
 	{
-		// TODO: handle
+		spConfigDestroy(config);
 		return false;
 	}
 

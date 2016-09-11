@@ -24,6 +24,8 @@
 #define ERROR_ARRAY_TYPE_INVALID_CONFIGURATION_LINE 0
 #define ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET 1
 #define ERROR_ARRAY_TYPE_PARAMTER_NOT_SET 2
+#define LOGGER_LEVEL_MAX 5
+#define LOGGER_LEVEL_MIN 0
 
 #define PCA_FILE_NAME_DEFULT "pca.yml"
 #define LOGGER_FILE_NAME_DEFULT "stdout"
@@ -62,6 +64,11 @@
 #define SUFFIX_GIF ".gif"
 #define filenameofek "est.txt"
 #define FEATS_SUFFIX ".feats"
+#define MODE_TRUE "true"
+#define MODE_FALSE "false"
+#define SPLIT_METHOD_RANDOM "RANDON"
+#define SPLIT_METHOD_MAX_SPREAD "MAX_SPREAD"
+#define SPLIT_METHOD_MAX_INCREMENTAL "INCREMENTAL"
 /**
  * A data-structure which is used for configuring the system.
  */

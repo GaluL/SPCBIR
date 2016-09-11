@@ -13,10 +13,12 @@
 #define SP_BAD_ARGUMENT "Bad argument was passed"
 #define SP_ERROR_READING_CONFIG "Unsuccessfull reading from config"
 #define SP_QUEUE_ERROR "Queue error occured"
-
-#define NEW_LINE "\n"
+#define SP_ERROR_FILE_NOT_OPEN "can't open file"
+#define SP_FAILED_WRITE_TO_FILE "failed write to file"
+#define SP_FAILED_READ_FROM_FILE "failed read from file"
 
 #define SP_INVALID_NEG_VALUE -1
+#define NEW_LINE "\n"
 
 
 #endif /* SPCOMMONDEFS_H_ */
