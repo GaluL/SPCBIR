@@ -44,7 +44,7 @@
 #define SP_KD_TREE_SPLIT_METHOD "spKDTreeSplitMethod"
 #define SP_KNN "spKNN"
 #define SP_MINMIMAL_GUI "spMinimalGUI"
-#define SP_LOGGER_LEVEL "spLoggerLevel"
+#define SP_MY_LOGGER_LEVEL "spLoggerLevel"
 #define SP_LOGGER_FILE_NAME "spLoggerFilename"
 #define ERROR_INVALID_CONFIGURATION_LINE "Invalid configuration line"
 #define ERROR_INVALID_VALUE "Invalid value - constraint not met"
@@ -54,7 +54,7 @@
 #define ERROR_LINE "Line:"
 #define ERROR_MASSAGE "Massage:"
 #define ERROR_THE_CONFIGURATION_FILE "The configuration file"
-#define ERROR_COULD_NOT_OPEN "couldn’t be open"
+#define ERROR_COULD_NOT_OPEN " couldn’t be open"
 #define DUMMY "temp"
 #define SKIP "skip"
 #define SKIP_EMPTY_LINE "skip empty line"
@@ -69,6 +69,16 @@
 #define SPLIT_METHOD_RANDOM "RANDOM"
 #define SPLIT_METHOD_MAX_SPREAD "MAX_SPREAD"
 #define SPLIT_METHOD_MAX_INCREMENTAL "INCREMENTAL"
+#define SP_CONFIG_MSG_MISSING_DIR "Directory has not initiated"
+#define SP_CONFIG_MSG_MISSING_PREFIX "Prefix has not initiated"
+#define SP_CONFIG_MSG_MISSING_SUFFIX "Suffix has not initiated"
+#define SP_CONFIG_MSG_MISSING_NUM_IMAGES "Num of images has not initiated"
+#define SP_CONFIG_MSG_CANNOT_OPEN_FILE "can't open file"
+#define SP_CONFIG_MSG_ALLOC_FAIL "can't allocate memory"
+#define SP_CONFIG_MSG_INVALID_INTEGER "invalid Integer had been assigned"
+#define SP_CONFIG_MSG_INVALID_STRING "invalid String had been assigned"
+#define SP_CONFIG_MSG_INVALID_ARGUMENT "invalid Argument had been assigned"
+#define SP_CONFIG_MSG_INDEX_OUT_OF_RANGE "invalid index is out of range"
 /**
  * A data-structure which is used for configuring the system.
  */
@@ -327,6 +337,6 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg);
 void spRegularErrorPrinter(const char* filename, int line,int ErrorTypeNum, char* paramterName);
 bool spAssignArgument(SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
 		const char* filename);
-
+void spConfigPrintConfigMsgToLogger (SP_CONFIG_MSG* msg);
 
 #endif /* SPCONFIG_H_ */

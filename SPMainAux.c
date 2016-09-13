@@ -11,12 +11,34 @@
 #include "SPMainAux.h"
 #include "SPKDTreeNode.h"
 
+// free allocated memory for the of imagesFeatures
+void freeImagesFeatures(SPImage* imagesFeatures, int numOfImages)
+{
+	int i = 0;
+
+	if (!imagesFeatures)
+	{
+		return;
+	}
+
+	for (i = 0; i < numOfImages; ++i)
+	{
+		if (imagesFeatures[i])
+		{
+			spImageDestroy(imagesFeatures[i]);
+		}
+	}
+
+	free(imagesFeatures);
+}
+// retrieve the file name  argument fro, the argv.
 char* spGetConfigFileName(int argc, char** argv)
 {
 	char* defaultFile = NULL;
 
 	int i = 0;
 	bool isUserEntered = true;
+	// getting the argument from argv
 	for (i = 0; i < argc; ++i)
 	{
 		if ((strcmp(argv[i], CONFIG_ARGUMENT_FLAG) == 0) && (i + 1 < argc))
@@ -29,20 +51,21 @@ char* spGetConfigFileName(int argc, char** argv)
 	// user entered invalid command line
 	if (!isUserEntered)
 	{
-		printf("%s", ERROR_INVALID_COMAND_LINE);
+		// TODO CHECK IF IT MENT TO BT THE REAL CONFIG FILE NAME need space -c <> ?
+		printf("%s%s\n", ERROR_INVALID_COMAND_LINE,DEFAULT_CONFIG_FILE);
 		fflush(NULL);
 		return NULL;
 	}
-	// user didn't entered command line - defauly will be chosen
+	// user didn't entered command line - default will be chosen
 	defaultFile = (char*)malloc((strlen(DEFAULT_CONFIG_FILE) + 1) * sizeof(char));
-	if (!sprintf("%s", DEFAULT_CONFIG_FILE))
+	if (!sprintf(defaultFile ,"%s", DEFAULT_CONFIG_FILE))
 	{
 		return NULL;
 	}
 
 	return defaultFile;
 }
-
+// Write the image features to  a file received from the config file.
 bool spSerializeImagesFeatures(SPImage* imagesFeatures, SPConfig config)
 {
 	int i = 0;
@@ -51,19 +74,32 @@ bool spSerializeImagesFeatures(SPImage* imagesFeatures, SPConfig config)
 	char* imageFeatsPath = (char*)malloc((MAX_FILE_PATH_LEN + 1) * sizeof(char));
 	if (!imageFeatsPath)
 	{
-		//TODO: handle
+		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
 		return false;
 	}
 
-	//TODO: check config msg
+	// getting the the num of images -. check config msg if not success end the program
 	numOfImages = spConfigGetNumOfImages(config, &configMsg);
-
+	if (configMsg != SP_CONFIG_SUCCESS)
+	{
+		spConfigPrintConfigMsgToLogger(&configMsg);
+		free(imageFeatsPath);
+		return false;
+	}
 	for (i = 0; i < numOfImages; ++i)
 	{
-		//TODO: check config msg
+		// getting the path to the place to write the images features
 		configMsg = spConfigGetImageFeatsPath(imageFeatsPath, config, i);
+		if (configMsg != SP_CONFIG_SUCCESS)
+		{
+			spConfigPrintConfigMsgToLogger(&configMsg);
+			free(imageFeatsPath);
+			return false;
+		}
+		// saving the image[i] features the the image features path received from config
 		if (!spImageSaveToFeats(imagesFeatures[i], imageFeatsPath))
 		{
+			free(imageFeatsPath);
 			return false;
 		}
 	}
@@ -72,38 +108,54 @@ bool spSerializeImagesFeatures(SPImage* imagesFeatures, SPConfig config)
 
 	return true;
 }
-
+// reading features from, file and assigning them to imagesFeature structure
 bool spDeserializeImagesFeatures(SPImage** imagesFeatures, SPConfig config)
 {
 	int i = 0;
 	int numOfImages = 0;
 	SP_CONFIG_MSG configMsg;
+	// allocating memory for image path
 	char* imageFeatsPath = (char*)malloc((MAX_FILE_PATH_LEN + 1) * sizeof(char));
 	if (!imageFeatsPath)
 	{
-		//TODO: handle
+		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
 		return false;
 	}
-
-	//TODO: check config msg
+	// getting the number of images as delivered in config file
 	numOfImages = spConfigGetNumOfImages(config, &configMsg);
+	if (configMsg != SP_CONFIG_SUCCESS)
+	{
+		spConfigPrintConfigMsgToLogger(&configMsg);
+		free(imageFeatsPath);
+		return false;
+	}
+	// allocating memory for the images features
 	*imagesFeatures = (SPImage*)malloc(numOfImages * sizeof(SPImage));
 	if (!(*imagesFeatures))
 	{
-		//TODO: handle
+		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
+		free(imageFeatsPath);
 		return false;
 	}
-
+	// for each image assign to image structure from the features in the file
 	for (i = 0; i < numOfImages; ++i)
 	{
-		// TODO: handle failure
 		 configMsg = spConfigGetImageFeatsPath(imageFeatsPath, config, i);
-
+		if (configMsg != SP_CONFIG_SUCCESS)
+		{
+			spConfigPrintConfigMsgToLogger(&configMsg);
+			free(imageFeatsPath);
+			return false;
+		}
+		 // for each image assign to image structure from the features in the file
 		 (*imagesFeatures)[i] = spImageCreateFromFeats(imageFeatsPath, i);
 		 if (!(*imagesFeatures)[i])
 		 {
-			 // TODO: handle
-			 return false;
+			// if a problem occurred freeing all allocated memory
+			freeImagesFeatures((*imagesFeatures),numOfImages);
+			free(imageFeatsPath);
+			spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
+			return false;
 		 }
 	}
 
@@ -117,6 +169,8 @@ typedef struct sp_indexkeeper_t {
 	int value;
 } SPIndexKeeper;
 
+
+// compare function used to compare to points by value while keeping there index
 int cmpIndexKeepersDesceding(const void* p1, const void* p2)
 {
 	int valuesDiff = 0;
@@ -127,7 +181,7 @@ int cmpIndexKeepersDesceding(const void* p1, const void* p2)
 
 	return valuesDiff ? valuesDiff : obj1->index - obj2->index;
 }
-
+// get the path of the most similar images the query image from the images data base
 char** spGetSimilarImagesPathes(SPConfig config, SPImage queryImage, SPKDTreeNode imagesDB)
 {
 	int i = 0;
@@ -141,51 +195,83 @@ char** spGetSimilarImagesPathes(SPConfig config, SPImage queryImage, SPKDTreeNod
 	char** result = NULL;
 
 
-	// TODO: handle config msgs
 	numOfImages = spConfigGetNumOfImages(config, &configMsg);
+	if (configMsg != SP_CONFIG_SUCCESS)
+	{
+		spConfigPrintConfigMsgToLogger(&configMsg);
+		return false;
+	}
+
 	numOfSimilarImages = spConfigGetNumOfSimilarImage(config, &configMsg);
+	if (configMsg != SP_CONFIG_SUCCESS)
+	{
+		spConfigPrintConfigMsgToLogger(&configMsg);
+		return false;
+	}
+
 	spKNN = spConfigGetKNN(config, &configMsg);
+	if (configMsg != SP_CONFIG_SUCCESS)
+	{
+		spConfigPrintConfigMsgToLogger(&configMsg);
+		return false;
+	}
 
 	topMatchQueue = spBPQueueCreate(spKNN);
 	if (!topMatchQueue)
 	{
+		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
 		return NULL;
 	}
 
 	occurencesArr = (SPIndexKeeper*)malloc(sizeof(SPIndexKeeper) * numOfImages);
 	if (!occurencesArr)
 	{
+		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
 		spBPQueueDestroy(topMatchQueue);
 		return NULL;
 	}
-
+	// filling the index keeper structure;
 	for (i = 0; i < numOfImages; ++i)
 	{
 		occurencesArr[i].index = i;
 		occurencesArr[i].value = 0;
 	}
-
+	// getting the num of features for image - if happened, error printed to logger from the function
 	int queryNumOfFeatures = spImageGetNumOfFeature(queryImage);
+	if (queryNumOfFeatures < 0)
+	{
+
+		free(occurencesArr);
+		spBPQueueDestroy(topMatchQueue);
+		return NULL;
+	}
+
 	for (i = 0; i < queryNumOfFeatures; ++i)
 	{
-		spKDTreeNodeKNNSearch(imagesDB, topMatchQueue, spImageGetFeature(queryImage, i));
+		if (!spKDTreeNodeKNNSearch(imagesDB, topMatchQueue, spImageGetFeature(queryImage, i)))
+		{
+			free(occurencesArr);
+			spBPQueueDestroy(topMatchQueue);
+			return NULL;
+		}
 
 		while(!spBPQueueIsEmpty(topMatchQueue))
 		{
 			indexAndDistance = spBPQueuePeek(topMatchQueue);
 			spBPQueueDequeue(topMatchQueue);
-
 			occurencesArr[spListElementGetIndex(indexAndDistance)].value++;
+			spListElementDestroy(indexAndDistance);
 		}
 	}
-
+	spBPQueueDestroy(topMatchQueue);
+	// the occurrence array by value while keeping the index
 	qsort(occurencesArr, numOfImages, sizeof(SPIndexKeeper), cmpIndexKeepersDesceding);
 
 	result = (char**)malloc(numOfSimilarImages * sizeof(char*));
 	if (!result)
 	{
 		free(occurencesArr);
-		spBPQueueDestroy(topMatchQueue);
+		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
 	}
 
 	for (i = 0; i < numOfSimilarImages; ++i)
@@ -193,30 +279,54 @@ char** spGetSimilarImagesPathes(SPConfig config, SPImage queryImage, SPKDTreeNod
 		result[i] = (char*)malloc(MAX_FILE_PATH_LEN * sizeof(char));
 		if (!result[i])
 		{
-			//TODO: free all previous strings allocations
-			free(result);
+			spDestroyResult(result, numOfSimilarImages);
 			free(occurencesArr);
-			spBPQueueDestroy(topMatchQueue);
+			spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
 		}
 	}
-
+	// getting the path of the most similar images.
 	for (i = 0; i < numOfSimilarImages; ++i)
 	{
-		spConfigGetImagePath(result[i], config, occurencesArr[i].index);
+		if (spConfigGetImagePath(result[i], config, occurencesArr[i].index) != SP_CONFIG_SUCCESS )
+		{
+			spDestroyResult(result, numOfSimilarImages);
+			free(occurencesArr);
+			spConfigPrintConfigMsgToLogger(&configMsg);
+			return NULL;
+		}
 	}
-
+	free(occurencesArr);
 	return result;
 }
+// free allocated array of strings
+void spDestroyResult(char** result,int numOfSimilarImages)
+{
+	int i = 0;
+	if (result)
+	{
+		for (i = 0; i < numOfSimilarImages; i++)
+		{
+			if (result[i])
+			{
+				free(result[i]);
+			}
+		}
+	free (result);
+	}
+}
+// print a string
 void flushed_printf(const char* str)
 {
 	printf("%s", str);
 	fflush(NULL);
 }
+//print a string with a newline
 void flushed_printf_newline(const char* str)
 {
 	printf("%s\n", str);
 	fflush(NULL);
 }
+// get a string from stdin
 char* flushed_gets()
 {
 	char input[MAX_INPUT_LENGTH];
@@ -235,6 +345,7 @@ char* flushed_gets()
 
 	return result;
 }
+
 void freeSimilarImagesPathes(char** SimilarImagesPathes,SPConfig config )
 {
 	int i = 0;
@@ -247,3 +358,54 @@ void freeSimilarImagesPathes(char** SimilarImagesPathes,SPConfig config )
 	}
 	free(SimilarImagesPathes);
 }
+void setMyLoggerLevel(int level, SP_LOGGER_LEVEL* loggerLevel)
+{
+	switch(level)
+	{
+		case (1):
+		{
+			*loggerLevel = SP_LOGGER_ERROR_LEVEL;
+			break;
+		}
+		case (2):
+		{
+			*loggerLevel = SP_LOGGER_WARNING_ERROR_LEVEL;
+			break;
+		}
+		case (3):
+		{
+			*loggerLevel = SP_LOGGER_INFO_WARNING_ERROR_LEVEL;
+			break;
+		}
+		case (4):
+		{
+			*loggerLevel = SP_LOGGER_DEBUG_INFO_WARNING_ERROR_LEVEL;
+			break;
+		}
+	}
+}
+void destroyMain(SPConfig config, char* loggerFilename, char* configFileName,
+		SPImage* imagesFeatures,SPKDTreeNode tree, int numOfImages)
+{
+	if (config)
+	{
+		spConfigDestroy(config);
+	}
+	if(loggerFilename)
+	{
+		free(loggerFilename);
+	}
+	if (configFileName)
+	{
+		free(configFileName);
+	}
+	if (imagesFeatures)
+	{
+		freeImagesFeatures(imagesFeatures, numOfImages);
+	}
+	if (tree)
+	{
+	spKDTreeNodeDestroy(tree);
+	}
+}
+

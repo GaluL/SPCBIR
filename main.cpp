@@ -16,6 +16,7 @@ extern "C"
 #include "SPMainAux.h"
 #include "SPConfig.h"
 #include "SPKDTreeNode.h"
+#include "SPLogger.h"
 }
 
 SPImage extractImageFeatures(sp::ImageProc* imgProc, const char* imagePath, int index)
@@ -45,6 +46,7 @@ SPImage* extractImagesFeatures(const SPConfig config, sp::ImageProc* imgProc, in
 	imagesFeatures = (SPImage*)malloc(numOfImages * sizeof(SPImage));
 	if (!imagesFeatures)
 	{
+		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
 		return NULL;
 	}
 
@@ -54,7 +56,8 @@ SPImage* extractImagesFeatures(const SPConfig config, sp::ImageProc* imgProc, in
 		imagesFeatures[i] = extractImageFeatures(imgProc, imagePath, i);
 		if (!imagesFeatures)
 		{
-			// TODO: handle
+			spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
+			freeImagesFeatures(imagesFeatures,numOfImages);
 			return NULL;
 		}
 	}
@@ -103,6 +106,7 @@ int main(int argc, char** argv)
 	bool terminate = false;
 	SPConfig config = NULL;
 	SP_CONFIG_MSG configMsg;
+	SP_LOGGER_LEVEL loggerLevel;
 	sp::ImageProc* imgProc = NULL;
 	int numOfImages = 0;
 	SPImage* imagesFeatures = NULL;
@@ -113,55 +117,95 @@ int main(int argc, char** argv)
 	char** SimilarImagesPathes = NULL;
 	int i = 0;
 	char* configFileName = spGetConfigFileName(argc, argv);
+	char* loggerFilename = NULL;
+	int intLoggerLevel = 0;
 
 	if (!configFileName)
 	{
-		if (strcmp(configFileName,DEFAULT_CONFIG_FILE) == 0)
-		{
-			flushed_printf(ERROR_SPCBIR_NOT_OPEN);
-		}
-		else
-		{
-			flushed_printf(ERROR_THE_CONFIGURATION);
-			flushed_printf(configFileName);
-			flushed_printf(ERROR_COULD_NOT_OPEN);
-		}
 		return 0;
 	}
 
 	config = spConfigCreate(configFileName, &configMsg);
 	if (config)
 	{
-		//TODO: wait for ofek's implementation
-		//logger = spLoggerCreate(, )
-		imgProc = new sp::ImageProc(config);
-		// TODO: handle failures
-		numOfImages = spConfigGetNumOfImages(config, &configMsg);
-		extractMode = spConfigIsExtractionMode(config, &configMsg);
 
+		loggerFilename = (char*)malloc((MAX_LINE_LENGTH + 1)* sizeof(char));
+		if (!loggerFilename)
+		{
+			flushed_printf_newline(SP_ALLOCATION_FAILURE);
+			destroyMain(config, loggerFilename, configFileName, imagesFeatures,
+					tree, SP_DUMMY_NUM_OF_IMAGES);
+			return 0;
+		}
+		if (spConfigGetLoggerFilename(loggerFilename,config) != SP_CONFIG_SUCCESS)
+		{
+			flushed_printf_newline(SP_ERROR_READING_CONFIG);
+			spConfigDestroy(config);
+			destroyMain(config, loggerFilename, configFileName, imagesFeatures,
+					tree, SP_DUMMY_NUM_OF_IMAGES);
+			return 0;
+		}
+		intLoggerLevel = spConfigLoggerLevel(config, &configMsg);
+		setMyLoggerLevel(intLoggerLevel,&loggerLevel);
+		if (spLoggerCreate(loggerFilename,loggerLevel)!= SP_LOGGER_SUCCESS)
+		{
+			destroyMain(config, loggerFilename, configFileName, imagesFeatures,
+					tree, SP_DUMMY_NUM_OF_IMAGES);
+			flushed_printf_newline(SP_ERROR_OPEN_LOGGER);
+			return 0;
+		}
+
+		imgProc = new sp::ImageProc(config);
+
+		numOfImages = spConfigGetNumOfImages(config, &configMsg);
+		if (configMsg != SP_CONFIG_SUCCESS)
+		{
+			spConfigPrintConfigMsgToLogger(&configMsg);
+			spLoggerDestroy();
+			destroyMain(config, loggerFilename, configFileName, imagesFeatures,
+					tree, SP_DUMMY_NUM_OF_IMAGES);
+			return 0;
+		}
+		extractMode = spConfigIsExtractionMode(config, &configMsg);
+		if (configMsg != SP_CONFIG_SUCCESS)
+		{
+			spConfigPrintConfigMsgToLogger(&configMsg);
+			spLoggerDestroy();
+			destroyMain(config, loggerFilename, configFileName, imagesFeatures, tree, numOfImages);
+			return 0;
+		}
 		if (extractMode)
 		{
 			imagesFeatures = extractImagesFeatures(config, imgProc, numOfImages);
 			if (!imagesFeatures)
 			{
-				//TODO: handle
+				spLoggerDestroy();
+				destroyMain(config, loggerFilename, configFileName, imagesFeatures, tree, numOfImages);
 			}
 			if (!spSerializeImagesFeatures(imagesFeatures, config))
 			{
-				return -1;
+				spLoggerDestroy();
+				destroyMain(config, loggerFilename, configFileName, imagesFeatures, tree, numOfImages);
+				return 0;
 			}
 		}
 		else
 		{
 			if (!spDeserializeImagesFeatures(&imagesFeatures, config))
 			{
-				return -1;
+				spLoggerDestroy();
+				destroyMain(config, loggerFilename, configFileName, imagesFeatures, tree, numOfImages);
+				return 0;
 			}
 		}
 
 		tree = spCreateKDTreeFromImages(imagesFeatures, config);
 	}
-
+	else
+	{
+		free(configFileName);
+		return 0;
+	}
 	while (!terminate)
 	{
 		flushed_printf(QUERY_IMAGE_PROMPT);
@@ -199,7 +243,8 @@ int main(int argc, char** argv)
 		}
 		else
 		{
-			//TODO: DESTROY ALL MEMORY;
+			spLoggerDestroy();
+			destroyMain(config, loggerFilename, configFileName, imagesFeatures, tree, numOfImages);
 			flushed_printf(MSG_EXIT);
 			terminate = true;
 		}

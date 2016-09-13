@@ -10,9 +10,11 @@
 #include "SPImage.h"
 #include "SPConfig.h"
 #include "SPKDTreeNode.h"
+#include "SPCommonDefs.h"
+#include "SPLogger.h"
 
 #define MAX_FILE_PATH_LEN 1024
-#define ERROR_INVALID_COMAND_LINE "Invalid command line : use -c <config_filename>\n"
+#define ERROR_INVALID_COMAND_LINE "Invalid command line : use -c "
 #define ERROR_THE_CONFIGURATION "The configuration file "
 //#define ERROR_COULD_NOT_OPEN "couldn’t be open\n"
 #define ERROR_SPCBIR_NOT_OPEN "The default configuration file spcbir.config couldn’t be open\n"
@@ -23,6 +25,7 @@
 #define TERMINATION_SIGN "<>"
 #define BEST_CANDIDATES "Best candidates for - "
 #define ARE " are:\n"
+#define INVALID_COMAND_LINE "Invalid command line"
 
 #define MAX_INPUT_LENGTH 1024
 
@@ -34,5 +37,9 @@ void flushed_printf(const char* str);
 void flushed_printf_newline(const char* str);
 char* flushed_gets();
 void freeSimilarImagesPathes(char** SimilarImagesPathes,SPConfig config );
-
+void freeImagesFeatures(SPImage* imagesFeatures, int numOfImages);
+void spDestroyResult(char** result,int numOfSimilarImages);
+void setMyLoggerLevel(int level, SP_LOGGER_LEVEL* loggerLevel);
+void destroyMain(SPConfig config, char* loggerFilename, char* configFileName, SPImage* imagesFeatures,
+		SPKDTreeNode tree,int numOfImages );
 #endif /* SPMAINAUX_H_ */

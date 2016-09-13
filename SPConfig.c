@@ -12,6 +12,7 @@
 #include <ctype.h>
 #include <assert.h>
 #include "SPCommonDefs.h"
+#include "SPMainAux.h"
 
 
 struct sp_config_t
@@ -383,7 +384,7 @@ bool spAssignArgument(SPConfig config, char* variable_name, char* variable_value
 	{
 		return setspMinimalGUI(config, variable_value, msg, line, filename);
 	}
-	else if (! strcmp(variable_name,SP_LOGGER_LEVEL))
+	else if (! strcmp(variable_name,SP_MY_LOGGER_LEVEL))
 	{
 		return setspLoggerLevel(config, variable_value, msg, line, filename);
 	}
@@ -440,7 +441,7 @@ char* cleanAssignmentOperand(char* str, SP_CONFIG_MSG* msg, const char* filename
 
 	for (i = 0; i < length; i++)
 	{
-		//	checking if the letter is # and in the middle
+		//	checking if the letter is #   or has  spaces is the middle
 		if( (trimmedStr[i] == COMMENT_MARK) || isspace(trimmedStr[i]))
 		{
 			*msg = SP_CONFIG_INVALID_STRING;
@@ -532,12 +533,19 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 	}
 
 	file = fopen(filename, "r");
-	//deal with error 3 file couldnt open
 	if (!file)
 	{
+		if (strcmp(filename,DEFAULT_CONFIG_FILE) == 0)
+		{
+			flushed_printf(ERROR_SPCBIR_NOT_OPEN);
+		}
+		else
+		{
+			flushed_printf(ERROR_THE_CONFIGURATION);
+			flushed_printf(filename);
+			flushed_printf(ERROR_COULD_NOT_OPEN);
+		}
 		*msg = SP_CONFIG_CANNOT_OPEN_FILE;
-		printf("%s,%s,%s/n",ERROR_THE_CONFIGURATION_FILE,filename,ERROR_COULD_NOT_OPEN);
-		fflush(NULL);
 		return NULL;
 	}
 
@@ -573,7 +581,7 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 				spConfigDestroy(config);
 				free(input);
 				fclose(file);
-				return false;
+				return NULL;
 			}
 		}
 
@@ -586,6 +594,7 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 	isDefuatInit = spIsDefaultInitiate(filename, msg, config, line_counter);
 	if (!isDefuatInit)
 	{
+		spConfigDestroy(config);
 		return NULL;
 	}
 	*msg = SP_CONFIG_SUCCESS;
@@ -877,28 +886,24 @@ bool spIsDefaultInitiate(const char* filename, SP_CONFIG_MSG* msg,SPConfig confi
 	{
 		*msg = SP_CONFIG_MISSING_DIR;
 		spRegularErrorPrinter(filename,line,2,SP_IMAGES_DIRECTORY);
-		spConfigDestroy(config);
 		return false;
 	}
 	if (!config->spImagesPrefix)
 	{
 		*msg = SP_CONFIG_MISSING_PREFIX;
 		spRegularErrorPrinter(filename,line,2,SP_IMAGES_PREFIX);
-		spConfigDestroy(config);
 		return false;
 	}
 	if (!config->spImagesSuffix)
 	{
 		*msg = SP_CONFIG_MISSING_SUFFIX;
 		spRegularErrorPrinter(filename,line,2,SP_IMAGES_SUFFIX);
-		spConfigDestroy(config);
 		return false;
 	}
 	if (config->spNumOfImages < 1)
 	{
 		*msg = SP_CONFIG_MISSING_NUM_IMAGES;
 		spRegularErrorPrinter(filename,line,2,SP_NUM_OF_IMAGES);
-		spConfigDestroy(config);
 		return false;
 	}
 	return true;
@@ -973,4 +978,61 @@ SP_CONFIG_MSG spConfigGetLoggerFilename(char* loggerFileName, const SPConfig con
 		return msg;
 }
 
-
+void spConfigPrintConfigMsgToLogger (SP_CONFIG_MSG* msg)
+{
+	switch(*msg)
+		{
+			case SP_CONFIG_MISSING_DIR:
+			{
+				spLoggerPrintError(SP_CONFIG_MSG_MISSING_DIR, __FILE__, __func__, __LINE__);
+				break;
+			}
+			case SP_CONFIG_MISSING_PREFIX:
+			{
+				spLoggerPrintError(SP_CONFIG_MSG_MISSING_PREFIX, __FILE__, __func__, __LINE__);
+				break;
+			}
+			case SP_CONFIG_MISSING_SUFFIX:
+			{
+				spLoggerPrintError(SP_CONFIG_MSG_MISSING_SUFFIX, __FILE__, __func__, __LINE__);
+				break;
+			}
+			case SP_CONFIG_MISSING_NUM_IMAGES:
+			{
+				spLoggerPrintError(SP_CONFIG_MSG_MISSING_NUM_IMAGES, __FILE__, __func__, __LINE__);
+				break;
+			}
+			case SP_CONFIG_CANNOT_OPEN_FILE:
+			{
+				spLoggerPrintError(SP_CONFIG_MSG_CANNOT_OPEN_FILE, __FILE__, __func__, __LINE__);
+				break;
+			}
+			case SP_CONFIG_ALLOC_FAIL:
+			{
+				spLoggerPrintError(SP_CONFIG_MSG_ALLOC_FAIL, __FILE__, __func__, __LINE__);
+				break;
+			}
+			case SP_CONFIG_INVALID_INTEGER:
+			{
+				spLoggerPrintError(SP_CONFIG_MSG_INVALID_INTEGER, __FILE__, __func__, __LINE__);
+				break;
+			}
+			case SP_CONFIG_INVALID_STRING:
+			{
+				spLoggerPrintError(SP_CONFIG_MSG_INVALID_STRING, __FILE__, __func__, __LINE__);
+				break;
+			}
+			case SP_CONFIG_INVALID_ARGUMENT:
+			{
+				spLoggerPrintError(SP_CONFIG_MSG_INVALID_ARGUMENT, __FILE__, __func__, __LINE__);
+				break;
+			}
+			case SP_CONFIG_INDEX_OUT_OF_RANGE:
+			{
+				spLoggerPrintError(SP_CONFIG_MSG_INDEX_OUT_OF_RANGE, __FILE__, __func__, __LINE__);
+				break;
+			}
+			case SP_CONFIG_SUCCESS:
+				break;
+		}
+}
