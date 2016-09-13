@@ -173,6 +173,11 @@ SPKDTreeNode spKDTreeNodeCreate(SPPoint* features, int size, SPConfig config)
 
 void spKDTreeNodeDestroy(SPKDTreeNode kdTreeNode)
 {
+	if (!kdTreeNode)
+	{
+		return;
+	}
+
 	if (kdTreeNode->Left)
 	{
 		spKDTreeNodeDestroy(kdTreeNode->Left);
@@ -180,13 +185,15 @@ void spKDTreeNodeDestroy(SPKDTreeNode kdTreeNode)
 
 	if (kdTreeNode->Right)
 	{
-		spKDTreeNodeDestroy(kdTreeNode->Left);
+		spKDTreeNodeDestroy(kdTreeNode->Right);
 	}
 
 	if (kdTreeNode->Data)
 	{
 		spPointDestroy(kdTreeNode->Data);
 	}
+
+	free(kdTreeNode);
 }
 
 bool SPKDTreeNodeIsLeaf(SPKDTreeNode node)
@@ -221,6 +228,7 @@ bool spKDTreeNodeKNNSearch(SPKDTreeNode curr , SPBPQueue bpq, SPPoint testPoint)
 		// Adding the feature index and distance to priority queue
 		if (spBPQueueEnqueue(bpq, elementToAdd) != SP_BPQUEUE_SUCCESS)
 		{
+			spListElementDestroy(elementToAdd);
 			spLoggerPrintError(SP_QUEUE_ERROR, __FILE__, __func__, __LINE__);
 			return false;
 		}

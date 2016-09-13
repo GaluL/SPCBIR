@@ -20,7 +20,6 @@
 #define SP_ERROR_OPEN_LOGGER "Unsuccessfull open the logger"
 
 #define SP_INVALID_NEG_VALUE -1
-#define SP_DUMMY_NUM_OF_IMAGES 0
 #define NEW_LINE "\n"
 
 

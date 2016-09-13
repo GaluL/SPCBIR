@@ -337,6 +337,6 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg);
 void spRegularErrorPrinter(const char* filename, int line,int ErrorTypeNum, char* paramterName);
 bool spAssignArgument(SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
 		const char* filename);
-void spConfigPrintConfigMsgToLogger (SP_CONFIG_MSG* msg);
+void spConfigPrintConfigMsgToLogger (SP_CONFIG_MSG msg);
 
 #endif /* SPCONFIG_H_ */

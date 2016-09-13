@@ -34,36 +34,33 @@ void freeImagesFeatures(SPImage* imagesFeatures, int numOfImages)
 // retrieve the file name  argument fro, the argv.
 char* spGetConfigFileName(int argc, char** argv)
 {
-	char* defaultFile = NULL;
-
 	int i = 0;
-	bool isUserEntered = true;
+	char* configFilePath = NULL;
+
+	configFilePath = (char*)malloc((MAX_FILE_PATH_LEN + 1) * sizeof(char));
+	if (!configFilePath)
+	{
+		return NULL;
+	}
+
 	// getting the argument from argv
 	for (i = 0; i < argc; ++i)
 	{
 		if ((strcmp(argv[i], CONFIG_ARGUMENT_FLAG) == 0) && (i + 1 < argc))
 		{
+			strcpy(configFilePath, argv[i + 1]);
 
-			return argv[i + 1];
+			return configFilePath;
 		}
-		isUserEntered = false;
-	}
-	// user entered invalid command line
-	if (!isUserEntered)
-	{
-		// TODO CHECK IF IT MENT TO BT THE REAL CONFIG FILE NAME need space -c <> ?
-		printf("%s%s\n", ERROR_INVALID_COMAND_LINE,DEFAULT_CONFIG_FILE);
-		fflush(NULL);
-		return NULL;
-	}
-	// user didn't entered command line - default will be chosen
-	defaultFile = (char*)malloc((strlen(DEFAULT_CONFIG_FILE) + 1) * sizeof(char));
-	if (!sprintf(defaultFile ,"%s", DEFAULT_CONFIG_FILE))
-	{
-		return NULL;
 	}
 
-	return defaultFile;
+	// TODO CHECK IF IT MENT TO BT THE REAL CONFIG FILE NAME need space -c <> ?
+	printf("%s%s\n", ERROR_INVALID_COMAND_LINE, DEFAULT_CONFIG_FILE);
+	fflush(NULL);
+
+	strcpy(configFilePath, DEFAULT_CONFIG_FILE);
+
+	return configFilePath;
 }
 // Write the image features to  a file received from the config file.
 bool spSerializeImagesFeatures(SPImage* imagesFeatures, SPConfig config)
@@ -82,7 +79,7 @@ bool spSerializeImagesFeatures(SPImage* imagesFeatures, SPConfig config)
 	numOfImages = spConfigGetNumOfImages(config, &configMsg);
 	if (configMsg != SP_CONFIG_SUCCESS)
 	{
-		spConfigPrintConfigMsgToLogger(&configMsg);
+		spConfigPrintConfigMsgToLogger(configMsg);
 		free(imageFeatsPath);
 		return false;
 	}
@@ -92,7 +89,7 @@ bool spSerializeImagesFeatures(SPImage* imagesFeatures, SPConfig config)
 		configMsg = spConfigGetImageFeatsPath(imageFeatsPath, config, i);
 		if (configMsg != SP_CONFIG_SUCCESS)
 		{
-			spConfigPrintConfigMsgToLogger(&configMsg);
+			spConfigPrintConfigMsgToLogger(configMsg);
 			free(imageFeatsPath);
 			return false;
 		}
@@ -125,7 +122,7 @@ bool spDeserializeImagesFeatures(SPImage** imagesFeatures, SPConfig config)
 	numOfImages = spConfigGetNumOfImages(config, &configMsg);
 	if (configMsg != SP_CONFIG_SUCCESS)
 	{
-		spConfigPrintConfigMsgToLogger(&configMsg);
+		spConfigPrintConfigMsgToLogger(configMsg);
 		free(imageFeatsPath);
 		return false;
 	}
@@ -143,7 +140,7 @@ bool spDeserializeImagesFeatures(SPImage** imagesFeatures, SPConfig config)
 		 configMsg = spConfigGetImageFeatsPath(imageFeatsPath, config, i);
 		if (configMsg != SP_CONFIG_SUCCESS)
 		{
-			spConfigPrintConfigMsgToLogger(&configMsg);
+			spConfigPrintConfigMsgToLogger(configMsg);
 			free(imageFeatsPath);
 			return false;
 		}
@@ -198,21 +195,21 @@ char** spGetSimilarImagesPathes(SPConfig config, SPImage queryImage, SPKDTreeNod
 	numOfImages = spConfigGetNumOfImages(config, &configMsg);
 	if (configMsg != SP_CONFIG_SUCCESS)
 	{
-		spConfigPrintConfigMsgToLogger(&configMsg);
+		spConfigPrintConfigMsgToLogger(configMsg);
 		return false;
 	}
 
 	numOfSimilarImages = spConfigGetNumOfSimilarImage(config, &configMsg);
 	if (configMsg != SP_CONFIG_SUCCESS)
 	{
-		spConfigPrintConfigMsgToLogger(&configMsg);
+		spConfigPrintConfigMsgToLogger(configMsg);
 		return false;
 	}
 
 	spKNN = spConfigGetKNN(config, &configMsg);
 	if (configMsg != SP_CONFIG_SUCCESS)
 	{
-		spConfigPrintConfigMsgToLogger(&configMsg);
+		spConfigPrintConfigMsgToLogger(configMsg);
 		return false;
 	}
 
@@ -291,7 +288,7 @@ char** spGetSimilarImagesPathes(SPConfig config, SPImage queryImage, SPKDTreeNod
 		{
 			spDestroyResult(result, numOfSimilarImages);
 			free(occurencesArr);
-			spConfigPrintConfigMsgToLogger(&configMsg);
+			spConfigPrintConfigMsgToLogger(configMsg);
 			return NULL;
 		}
 	}
@@ -354,10 +351,18 @@ void freeSimilarImagesPathes(char** SimilarImagesPathes,SPConfig config )
 	numOfSimilarImages = spConfigGetNumOfSimilarImage(config, &configMsg);
 	for (i = 0; i < numOfSimilarImages; ++i)
 	{
-		free(SimilarImagesPathes[i]);
+		if (SimilarImagesPathes[i])
+		{
+			free(SimilarImagesPathes[i]);
+		}
 	}
-	free(SimilarImagesPathes);
+
+	if (SimilarImagesPathes)
+	{
+		free(SimilarImagesPathes);
+	}
 }
+
 void setMyLoggerLevel(int level, SP_LOGGER_LEVEL* loggerLevel)
 {
 	switch(level)
@@ -384,28 +389,80 @@ void setMyLoggerLevel(int level, SP_LOGGER_LEVEL* loggerLevel)
 		}
 	}
 }
-void destroyMain(SPConfig config, char* loggerFilename, char* configFileName,
-		SPImage* imagesFeatures,SPKDTreeNode tree, int numOfImages)
+
+bool initLoggerFromConfig(SPConfig config)
 {
-	if (config)
+	SP_CONFIG_MSG configMsg;
+	char* loggerFileName = NULL;
+	int loggerLevel = -1;
+
+	configMsg = spConfigGetLoggerFilename(loggerFileName, config);
+
+	if (configMsg != SP_CONFIG_SUCCESS)
 	{
-		spConfigDestroy(config);
+		spConfigPrintConfigMsgToLogger(configMsg);
+
+		return false;
 	}
-	if(loggerFilename)
+
+	loggerLevel = spConfigLoggerLevel(config, &configMsg);
+	if (configMsg != SP_CONFIG_SUCCESS)
 	{
-		free(loggerFilename);
+		spConfigPrintConfigMsgToLogger(configMsg);
+
+		return false;
 	}
+
+	if (!spLoggerCreate(loggerFileName, loggerLevel) != SP_LOGGER_SUCCESS)
+	{
+		// TODO: handle
+
+		return false;
+	}
+
+	return true;
+}
+
+void destroyVariables(char* configFileName, SPConfig config, SPImage* imagesFeatures,
+		char* queryPath, SPKDTreeNode featuresKDTree, SPImage query, char** SimilarImagesPathes)
+{
+	SP_CONFIG_MSG configMsg;
+
+	spLoggerDestroy();
+
 	if (configFileName)
 	{
 		free(configFileName);
 	}
+
 	if (imagesFeatures)
 	{
-		freeImagesFeatures(imagesFeatures, numOfImages);
+		freeImagesFeatures(imagesFeatures, spConfigGetNumOfImages(config, &configMsg));
 	}
-	if (tree)
+
+	if (queryPath)
 	{
-	spKDTreeNodeDestroy(tree);
+		free(queryPath);
+	}
+
+	if (featuresKDTree)
+	{
+		spKDTreeNodeDestroy(featuresKDTree);
+	}
+
+	if (query)
+	{
+		spImageDestroy(query);
+	}
+
+	if (SimilarImagesPathes)
+	{
+		freeSimilarImagesPathes(SimilarImagesPathes, config);
+	}
+
+	if (config)
+	{
+		spConfigDestroy(config);
 	}
 }
 

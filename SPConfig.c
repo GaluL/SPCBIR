@@ -50,7 +50,8 @@ SPConfig spConfigInit()
 	config->spImagesSuffix = NULL;
 	config->spNumOfImages = 0;
 	config->spPCADimension = PCA_DIMENSION_DEFULT;
-	config->spPCAFilename = (char*)malloc((SIZE_OF_PCAYML +1) * sizeof(char));
+	// TODO: check why 7?
+	config->spPCAFilename = (char*)malloc((SIZE_OF_PCAYML + 1) * sizeof(char));
 	if (!config->spPCAFilename)
 	{
 		// add error memory allocation failure
@@ -58,6 +59,7 @@ SPConfig spConfigInit()
 		return NULL;
 	}
 	strcpy(config->spPCAFilename, PCA_FILE_NAME_DEFULT);
+
 	config->spNumOfFeatures = NUM_OF_FEATURES_DEFULT;
 	config->spExtractionMode = true;
 	config->spNumOfSimilarImages = NUM_OF_SIMILAR_IMAGES_DEFULT;
@@ -65,14 +67,16 @@ SPConfig spConfigInit()
 	config->spKNN = KNN_DEFULT;
 	config->spMinimalGUI = false;
 	config->spLoggerLevel = LOGGER_LEVEL_DEFULT;
+	// TODO: why 6?
 	config->spLoggerFilename  = (char*)malloc((SIZE_OF_STDOUT +1) * sizeof(char));
-		if (!config->spLoggerFilename)
-		{
-			// add error memory allocation failure
-			free(config->spPCAFilename);
-			free(config);
-			return NULL;
-		}
+	if (!config->spLoggerFilename)
+	{
+		// add error memory allocation failure
+		free(config->spPCAFilename);
+		free(config);
+		return NULL;
+	}
+
 	strcpy(config->spLoggerFilename, LOGGER_FILE_NAME_DEFULT);
 	return config;
 }
@@ -182,14 +186,18 @@ bool setspPCADimension (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg
 }
 bool setspPCAFilename (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg)
 {
-	free(config->spPCAFilename);
+	if (config->spPCAFilename)
+	{
+		free(config->spPCAFilename);
+	}
+
 	config->spPCAFilename = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
 	if (!config->spPCAFilename)
 	{
 		*msg = SP_CONFIG_ALLOC_FAIL;
 		return false;
 	}
-	strcpy(config->spPCAFilename,variable_value);
+	strcpy(config->spPCAFilename, variable_value);
 	return true;
 }
 bool setspNumOfFeatures (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, int line,
@@ -320,7 +328,11 @@ bool setspLoggerLevel (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg,
 }
 bool setspLoggerFilename (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg)
 {
-	free(config->spLoggerFilename);
+	if (config->spLoggerFilename)
+	{
+		free(config->spLoggerFilename);
+	}
+
 	config->spLoggerFilename = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
 	if (!config->spLoggerFilename)
 	{
@@ -335,7 +347,6 @@ bool setspLoggerFilename (SPConfig config, char* variable_value,SP_CONFIG_MSG* m
 bool spAssignArgument(SPConfig config, char* variable_name, char* variable_value, SP_CONFIG_MSG* msg, int line,
 		const char* filename)
 {
-
 	if (! strcmp(variable_name,SP_IMAGES_DIRECTORY))
 	{
 		return setspImagesDirectory(config, variable_value, msg);
@@ -512,6 +523,9 @@ bool proccesAssignmentLine(SPConfig config, const char* line, const char* filena
 		return false;
 	}
 
+	free(variableName);
+	free(variableValue);
+
 	return true;
 }
 
@@ -541,11 +555,12 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 		}
 		else
 		{
-			flushed_printf(ERROR_THE_CONFIGURATION);
-			flushed_printf(filename);
-			flushed_printf(ERROR_COULD_NOT_OPEN);
+			printf("%s %s %s", ERROR_THE_CONFIGURATION, filename, ERROR_COULD_NOT_OPEN);
+			fflush(NULL);
 		}
+
 		*msg = SP_CONFIG_CANNOT_OPEN_FILE;
+
 		return NULL;
 	}
 
@@ -567,7 +582,7 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 	{
 		tmpInput = input;
 
-		if ((newLinePointer = strchr(tmpInput, '\n'/*NEW_LINE*/)) != NULL)
+		if ((newLinePointer = strchr(tmpInput, '\n')) != NULL)
 		{
 		    *newLinePointer = NULL_TERMINATE;
 		}
@@ -598,6 +613,7 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 		return NULL;
 	}
 	*msg = SP_CONFIG_SUCCESS;
+
 	return config;
 }
 
@@ -886,24 +902,28 @@ bool spIsDefaultInitiate(const char* filename, SP_CONFIG_MSG* msg,SPConfig confi
 	{
 		*msg = SP_CONFIG_MISSING_DIR;
 		spRegularErrorPrinter(filename,line,2,SP_IMAGES_DIRECTORY);
+		spConfigDestroy(config);
 		return false;
 	}
 	if (!config->spImagesPrefix)
 	{
 		*msg = SP_CONFIG_MISSING_PREFIX;
 		spRegularErrorPrinter(filename,line,2,SP_IMAGES_PREFIX);
+		spConfigDestroy(config);
 		return false;
 	}
 	if (!config->spImagesSuffix)
 	{
 		*msg = SP_CONFIG_MISSING_SUFFIX;
 		spRegularErrorPrinter(filename,line,2,SP_IMAGES_SUFFIX);
+		spConfigDestroy(config);
 		return false;
 	}
 	if (config->spNumOfImages < 1)
 	{
 		*msg = SP_CONFIG_MISSING_NUM_IMAGES;
 		spRegularErrorPrinter(filename,line,2,SP_NUM_OF_IMAGES);
+		spConfigDestroy(config);
 		return false;
 	}
 	return true;
@@ -962,25 +982,25 @@ int spConfigLoggerLevel (const SPConfig config,SP_CONFIG_MSG* msg)
 
 SP_CONFIG_MSG spConfigGetLoggerFilename(char* loggerFileName, const SPConfig config)
 {
-	SP_CONFIG_MSG msg;
-		if ((!config)||(!loggerFileName))
-		{
-			msg = SP_CONFIG_INVALID_ARGUMENT;
-			return msg;
-		}
+	if ((!config)||(!loggerFileName))
+	{
+		return SP_CONFIG_INVALID_ARGUMENT;
+	}
 
-		if (!sprintf(loggerFileName, "%s", config->spLoggerFilename))
-			// TODO: CHECK IF ITS THE RIGHT HANDLE
-			msg = SP_CONFIG_ALLOC_FAIL;
-			return msg;
+	loggerFileName = (char*)malloc((strlen(config->spLoggerFilename) + 1) * sizeof(char));
+	if (!loggerFileName)
+	{
+		return SP_CONFIG_ALLOC_FAIL;
+	}
 
-		msg = SP_CONFIG_SUCCESS;
-		return msg;
+	strcpy(loggerFileName, config->spLoggerFilename);
+
+	return SP_CONFIG_SUCCESS;
 }
 
-void spConfigPrintConfigMsgToLogger (SP_CONFIG_MSG* msg)
+void spConfigPrintConfigMsgToLogger (SP_CONFIG_MSG msg)
 {
-	switch(*msg)
+	switch(msg)
 		{
 			case SP_CONFIG_MISSING_DIR:
 			{

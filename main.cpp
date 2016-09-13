@@ -65,60 +65,34 @@ SPImage* extractImagesFeatures(const SPConfig config, sp::ImageProc* imgProc, in
 	return imagesFeatures;
 }
 
-//void UnitTest()
-//{
-//	srand(0);
-//	SPPoint* pointsArr = (SPPoint*)malloc(5 * sizeof(SPPoint));
-//	SPImage image;
-//
-//	double median = -1;
-//
-//	double coords0[2] = {1, 2};
-//	pointsArr[0] = spPointCreate(coords0, 2, 0);
-//
-//	double coords1[2] = {123, 70};
-//	pointsArr[1] = spPointCreate(coords1, 2, 1);
-//
-//	double coords2[2] = {2, 7};
-//	pointsArr[2] = spPointCreate(coords2, 2, 2);
-//
-//	double coords3[2] = {9, 11};
-//	pointsArr[3] = spPointCreate(coords3, 2, 3);
-//
-//	double coords4[2] = {3, 4};
-//	pointsArr[4] = spPointCreate(coords4, 2, 4);
-//
-//	image = spImageCreateFromImg(pointsArr, 5);
-//	spImageSaveToFeats(image, "testImage.feat");
-//	//image = spImageCreateFromFeats("testImage.feat");
-//
-//	//SPKDArray kdArr = spKDArrayInit(pointsArr, 5);
-//	//spKDArraySplit(kdArr, 0, &median);
-//
-//	if (image)
-//	{
-//		return;
-//	}
-//}
+void destroyMainVariables(char* configFileName, SPConfig config, sp::ImageProc* imgProc,
+		SPImage* imagesFeatures, char* queryPath, SPKDTreeNode featuresKDTree, SPImage query,
+		char** SimilarImagesPathes)
+{
+	if (imgProc)
+	{
+		delete imgProc;
+	}
+
+	destroyVariables(configFileName, config, imagesFeatures, queryPath, featuresKDTree, query,
+		SimilarImagesPathes);
+}
 
 int main(int argc, char** argv)
 {
-	bool terminate = false;
 	SPConfig config = NULL;
 	SP_CONFIG_MSG configMsg;
-	SP_LOGGER_LEVEL loggerLevel;
 	sp::ImageProc* imgProc = NULL;
 	int numOfImages = 0;
 	SPImage* imagesFeatures = NULL;
-	//SPLogger logger = NULL;
 	bool extractMode = false;
 	char* queryPath = NULL;
-	SPKDTreeNode tree = NULL;
+	SPKDTreeNode featuresKDTree = NULL;
 	char** SimilarImagesPathes = NULL;
 	int i = 0;
+	SPImage query = NULL;
+	bool minimalGUI = false;
 	char* configFileName = spGetConfigFileName(argc, argv);
-	char* loggerFilename = NULL;
-	int intLoggerLevel = 0;
 
 	if (!configFileName)
 	{
@@ -128,31 +102,9 @@ int main(int argc, char** argv)
 	config = spConfigCreate(configFileName, &configMsg);
 	if (config)
 	{
-
-		loggerFilename = (char*)malloc((MAX_LINE_LENGTH + 1)* sizeof(char));
-		if (!loggerFilename)
+		if (!initLoggerFromConfig(config))
 		{
-			flushed_printf_newline(SP_ALLOCATION_FAILURE);
-			destroyMain(config, loggerFilename, configFileName, imagesFeatures,
-					tree, SP_DUMMY_NUM_OF_IMAGES);
-			return 0;
-		}
-		if (spConfigGetLoggerFilename(loggerFilename,config) != SP_CONFIG_SUCCESS)
-		{
-			flushed_printf_newline(SP_ERROR_READING_CONFIG);
-			spConfigDestroy(config);
-			destroyMain(config, loggerFilename, configFileName, imagesFeatures,
-					tree, SP_DUMMY_NUM_OF_IMAGES);
-			return 0;
-		}
-		intLoggerLevel = spConfigLoggerLevel(config, &configMsg);
-		setMyLoggerLevel(intLoggerLevel,&loggerLevel);
-		if (spLoggerCreate(loggerFilename,loggerLevel)!= SP_LOGGER_SUCCESS)
-		{
-			destroyMain(config, loggerFilename, configFileName, imagesFeatures,
-					tree, SP_DUMMY_NUM_OF_IMAGES);
-			flushed_printf_newline(SP_ERROR_OPEN_LOGGER);
-			return 0;
+			// TODO: handle
 		}
 
 		imgProc = new sp::ImageProc(config);
@@ -160,32 +112,39 @@ int main(int argc, char** argv)
 		numOfImages = spConfigGetNumOfImages(config, &configMsg);
 		if (configMsg != SP_CONFIG_SUCCESS)
 		{
-			spConfigPrintConfigMsgToLogger(&configMsg);
+			spConfigPrintConfigMsgToLogger(configMsg);
 			spLoggerDestroy();
-			destroyMain(config, loggerFilename, configFileName, imagesFeatures,
-					tree, SP_DUMMY_NUM_OF_IMAGES);
+			spConfigDestroy(config);
+
 			return 0;
 		}
+
 		extractMode = spConfigIsExtractionMode(config, &configMsg);
 		if (configMsg != SP_CONFIG_SUCCESS)
 		{
-			spConfigPrintConfigMsgToLogger(&configMsg);
-			spLoggerDestroy();
-			destroyMain(config, loggerFilename, configFileName, imagesFeatures, tree, numOfImages);
+			spConfigPrintConfigMsgToLogger(configMsg);
+			destroyMainVariables(configFileName, config, imgProc, imagesFeatures, queryPath,
+					featuresKDTree, query, SimilarImagesPathes);
+
 			return 0;
 		}
+
 		if (extractMode)
 		{
 			imagesFeatures = extractImagesFeatures(config, imgProc, numOfImages);
 			if (!imagesFeatures)
 			{
-				spLoggerDestroy();
-				destroyMain(config, loggerFilename, configFileName, imagesFeatures, tree, numOfImages);
+				destroyMainVariables(configFileName, config, imgProc, imagesFeatures, queryPath,
+						featuresKDTree, query, SimilarImagesPathes);
+
+				return 0;
 			}
+
 			if (!spSerializeImagesFeatures(imagesFeatures, config))
 			{
-				spLoggerDestroy();
-				destroyMain(config, loggerFilename, configFileName, imagesFeatures, tree, numOfImages);
+				destroyMainVariables(configFileName, config, imgProc, imagesFeatures, queryPath,
+						featuresKDTree, query, SimilarImagesPathes);
+
 				return 0;
 			}
 		}
@@ -193,61 +152,103 @@ int main(int argc, char** argv)
 		{
 			if (!spDeserializeImagesFeatures(&imagesFeatures, config))
 			{
-				spLoggerDestroy();
-				destroyMain(config, loggerFilename, configFileName, imagesFeatures, tree, numOfImages);
+				destroyMainVariables(configFileName, config, imgProc, imagesFeatures, queryPath,
+						featuresKDTree, query, SimilarImagesPathes);
+
 				return 0;
 			}
 		}
 
-		tree = spCreateKDTreeFromImages(imagesFeatures, config);
+		featuresKDTree = spCreateKDTreeFromImages(imagesFeatures, config);
+		if (!featuresKDTree)
+		{
+			destroyMainVariables(configFileName, config, imgProc, imagesFeatures, queryPath,
+					featuresKDTree, query, SimilarImagesPathes);
+
+			return 0;
+		}
 	}
 	else
 	{
-		free(configFileName);
 		return 0;
 	}
-	while (!terminate)
+
+	flushed_printf(QUERY_IMAGE_PROMPT);
+	queryPath = flushed_gets();
+	if (!queryPath)
 	{
-		flushed_printf(QUERY_IMAGE_PROMPT);
-		queryPath = flushed_gets();
-		if (strcmp(TERMINATION_SIGN, queryPath) != 0)
+		destroyMainVariables(configFileName, config, imgProc, imagesFeatures, queryPath,
+				featuresKDTree, query, SimilarImagesPathes);
+
+		return 0;
+	}
+
+	while (strcmp(TERMINATION_SIGN, queryPath) != 0)
+	{
+		query = extractImageFeatures(imgProc, queryPath, 666);
+		if (!query)
 		{
-			if (tree)
+			destroyMainVariables(configFileName, config, imgProc, imagesFeatures, queryPath,
+					featuresKDTree, query, SimilarImagesPathes);
 
+			return 0;
+		}
+
+		SimilarImagesPathes = spGetSimilarImagesPathes(config, query, featuresKDTree);
+		if (!SimilarImagesPathes)
+		{
+			destroyMainVariables(configFileName, config, imgProc, imagesFeatures, queryPath,
+					featuresKDTree, query, SimilarImagesPathes);
+
+			return 0;
+		}
+
+		minimalGUI = spConfigMinimalGui(config,&configMsg);
+		if (configMsg != SP_CONFIG_SUCCESS)
+		{
+			destroyMainVariables(configFileName, config, imgProc, imagesFeatures, queryPath,
+					featuresKDTree, query, SimilarImagesPathes);
+
+			return 0;
+		}
+
+		if (minimalGUI)
+		{
+			for (i = 0; i < spConfigGetNumOfSimilarImage(config, &configMsg) ; i++)
 			{
-				// WHY 666???
-				SPImage query = extractImageFeatures(imgProc, queryPath, 666);
-				SimilarImagesPathes = spGetSimilarImagesPathes(config, query, tree);
-				if (spConfigMinimalGui(config,&configMsg))
-				{
-					for (i = 0; i < spConfigGetNumOfSimilarImage(config, &configMsg) ; i++)
-					{
-						imgProc->showImage(SimilarImagesPathes[i]);
-					}
-				}
-				else
-				{
-					flushed_printf(BEST_CANDIDATES);
-					flushed_printf(queryPath);
-					flushed_printf(ARE);
-					for (i = 0; i < spConfigGetNumOfSimilarImage(config, &configMsg) ; i++)
-					{
-						flushed_printf_newline(SimilarImagesPathes[i]);
-					}
-				}
-				free(queryPath);
-				spImageDestroy(query);
-				freeSimilarImagesPathes(SimilarImagesPathes, config);
-
+				imgProc->showImage(SimilarImagesPathes[i]);
 			}
 		}
 		else
 		{
-			spLoggerDestroy();
-			destroyMain(config, loggerFilename, configFileName, imagesFeatures, tree, numOfImages);
-			flushed_printf(MSG_EXIT);
-			terminate = true;
+			printf("%s %s %s", BEST_CANDIDATES, queryPath, ARE);
+			fflush(NULL);
+
+			for (i = 0; i < spConfigGetNumOfSimilarImage(config, &configMsg) ; i++)
+			{
+				flushed_printf_newline(SimilarImagesPathes[i]);
+			}
+		}
+
+		free(queryPath);
+		spImageDestroy(query);
+		freeSimilarImagesPathes(SimilarImagesPathes, config);
+
+		flushed_printf(QUERY_IMAGE_PROMPT);
+		queryPath = flushed_gets();
+		if (!queryPath)
+		{
+			destroyMainVariables(configFileName, config, imgProc, imagesFeatures, queryPath,
+					featuresKDTree, query, SimilarImagesPathes);
+
+			return 0;
 		}
 	}
+
+	flushed_printf(MSG_EXIT);
+
+	destroyMainVariables(configFileName, config, imgProc, imagesFeatures, queryPath,
+			featuresKDTree, query, SimilarImagesPathes);
+
 	return 0;
 }
