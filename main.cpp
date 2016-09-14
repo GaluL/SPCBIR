@@ -170,6 +170,8 @@ int main(int argc, char** argv)
 	}
 	else
 	{
+		spConfigPrintConfigMsgToStdout(configMsg);
+		free(configFileName);
 		return 0;
 	}
 

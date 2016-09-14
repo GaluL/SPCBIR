@@ -29,7 +29,24 @@
 
 #define MAX_INPUT_LENGTH 1024
 
+
+/**
+ * The function receive the config file name from the user, or  assign default nothing received
+ *
+ *
+ *
+ * @param argv
+ * @param argc
+ * @return
+ *  - string represent the configfile name
+ *  -
+ *  - SP_CONFIG_ALLOC_FAIL - if allocation failure occurred
+ *  - SP_CONFIG_SUCCESS - in case of success
+ */
 char* spGetConfigFileName(int argc, char** argv);
+
+
+
 bool spSerializeImagesFeatures(SPImage* imagesFeatures, SPConfig config);
 bool spDeserializeImagesFeatures(SPImage** imagesFeatures, SPConfig config);
 char** spGetSimilarImagesPathes(SPConfig config, SPImage queryImage, SPKDTreeNode imagesDB);

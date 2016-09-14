@@ -53,7 +53,10 @@ SPKDArray spKDArrayInit(SPPoint* arr, int size);
  * an error.
  */
 bool spKDArraySplit(SPKDArray kdArr, int axis, SPKDArray* kdLeft, SPKDArray* kdRight, double* splitMedian);
-
+/**
+ * Frees all memory resources associate with SPKDArray.
+ * If SPKDArray == NULL nothig is done.
+ */
 void spKDArrayDestroy(SPKDArray kdArr);
 
 /**

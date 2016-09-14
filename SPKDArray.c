@@ -428,7 +428,10 @@ bool spKDArraySplit(SPKDArray kdArr, int axis, SPKDArray* kdLeft, SPKDArray* kdR
 void spKDArrayDestroy(SPKDArray kdArr)
 {
 	int i = 0;
-
+	if (!kdArr)
+	{
+		return;
+	}
 	// Frees all the points of the array if allocated
 	if (kdArr->points)
 	{

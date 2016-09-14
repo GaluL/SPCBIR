@@ -36,7 +36,7 @@ struct sp_config_t
 
 // function that sets the default values of the struct.
 
-SPConfig spConfigInit()
+SPConfig spConfigInit(SP_CONFIG_MSG* msg)
 {
 	SPConfig config = NULL;
 	config = (SPConfig)malloc(sizeof(*config));
@@ -50,11 +50,10 @@ SPConfig spConfigInit()
 	config->spImagesSuffix = NULL;
 	config->spNumOfImages = 0;
 	config->spPCADimension = PCA_DIMENSION_DEFULT;
-	// TODO: check why 7?
 	config->spPCAFilename = (char*)malloc((SIZE_OF_PCAYML + 1) * sizeof(char));
 	if (!config->spPCAFilename)
 	{
-		// add error memory allocation failure
+		*msg = SP_CONFIG_ALLOC_FAIL;
 		free(config);
 		return NULL;
 	}
@@ -67,17 +66,17 @@ SPConfig spConfigInit()
 	config->spKNN = KNN_DEFULT;
 	config->spMinimalGUI = false;
 	config->spLoggerLevel = LOGGER_LEVEL_DEFULT;
-	// TODO: why 6?
 	config->spLoggerFilename  = (char*)malloc((SIZE_OF_STDOUT +1) * sizeof(char));
 	if (!config->spLoggerFilename)
 	{
-		// add error memory allocation failure
+		*msg = SP_CONFIG_ALLOC_FAIL;
 		free(config->spPCAFilename);
 		free(config);
 		return NULL;
 	}
 
 	strcpy(config->spLoggerFilename, LOGGER_FILE_NAME_DEFULT);
+	*msg = SP_CONFIG_SUCCESS;
 	return config;
 }
 /*
@@ -564,10 +563,9 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 		return NULL;
 	}
 
-	SPConfig config = spConfigInit();
+	SPConfig config = spConfigInit(msg);
 	if (!config)
 	{
-		*msg = SP_CONFIG_ALLOC_FAIL;
 		fclose(file);
 		return NULL;
 	}
@@ -1050,6 +1048,74 @@ void spConfigPrintConfigMsgToLogger (SP_CONFIG_MSG msg)
 			case SP_CONFIG_INDEX_OUT_OF_RANGE:
 			{
 				spLoggerPrintError(SP_CONFIG_MSG_INDEX_OUT_OF_RANGE, __FILE__, __func__, __LINE__);
+				break;
+			}
+			case SP_CONFIG_SUCCESS:
+				break;
+		}
+}
+void spConfigPrintConfigMsgToStdout (SP_CONFIG_MSG msg)
+{
+	switch(msg)
+		{
+			case SP_CONFIG_MISSING_DIR:
+			{
+				printf("%s\n", SP_CONFIG_MSG_MISSING_DIR);
+				fflush(NULL);
+				break;
+			}
+			case SP_CONFIG_MISSING_PREFIX:
+			{
+				printf("%s\n", SP_CONFIG_MSG_MISSING_PREFIX);
+				fflush(NULL);
+				break;
+			}
+			case SP_CONFIG_MISSING_SUFFIX:
+			{
+				printf("%s\n", SP_CONFIG_MSG_MISSING_SUFFIX);
+				fflush(NULL);
+				break;
+			}
+			case SP_CONFIG_MISSING_NUM_IMAGES:
+			{
+				printf("%s\n", SP_CONFIG_MSG_MISSING_NUM_IMAGES);
+				fflush(NULL);
+				break;
+			}
+			case SP_CONFIG_CANNOT_OPEN_FILE:
+			{
+				printf("%s\n", SP_CONFIG_MSG_CANNOT_OPEN_FILE);
+				fflush(NULL);
+				break;
+			}
+			case SP_CONFIG_ALLOC_FAIL:
+			{
+				printf("%s\n", SP_CONFIG_MSG_ALLOC_FAIL);
+				fflush(NULL);
+				break;
+			}
+			case SP_CONFIG_INVALID_INTEGER:
+			{
+				printf("%s\n", SP_CONFIG_MSG_INVALID_INTEGER);
+				fflush(NULL);
+				break;
+			}
+			case SP_CONFIG_INVALID_STRING:
+			{
+				printf("%s\n", SP_CONFIG_MSG_INVALID_STRING);
+				fflush(NULL);
+				break;
+			}
+			case SP_CONFIG_INVALID_ARGUMENT:
+			{
+				printf("%s\n", SP_CONFIG_MSG_INVALID_ARGUMENT);
+				fflush(NULL);
+				break;
+			}
+			case SP_CONFIG_INDEX_OUT_OF_RANGE:
+			{
+				printf("%s\n", SP_CONFIG_MSG_INDEX_OUT_OF_RANGE);
+				fflush(NULL);
 				break;
 			}
 			case SP_CONFIG_SUCCESS:

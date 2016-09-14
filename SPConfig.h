@@ -19,8 +19,6 @@
 #define SP_PCA_DIMENSION_CONSTRAINT_LOW 9
 #define SP_PCA_DIMENSION_CONSTRAINT_HIGH 29
 #define NUM_OF_ERROR_IN_ARRAY 4
-#define SIZE_OF_SKIP 4
-#define SIZE_OF_SKIP_SKIP_EMPTY_LINE 15
 #define ERROR_ARRAY_TYPE_INVALID_CONFIGURATION_LINE 0
 #define ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET 1
 #define ERROR_ARRAY_TYPE_PARAMTER_NOT_SET 2
@@ -48,16 +46,14 @@
 #define SP_LOGGER_FILE_NAME "spLoggerFilename"
 #define ERROR_INVALID_CONFIGURATION_LINE "Invalid configuration line"
 #define ERROR_INVALID_VALUE "Invalid value - constraint not met"
-#define ERROR_PARAMTER "Parameter"
-#define ERROR_IS_NOT_SET "is not set"
-#define ERROR_FILE "File:"
-#define ERROR_LINE "Line:"
-#define ERROR_MASSAGE "Massage:"
-#define ERROR_THE_CONFIGURATION_FILE "The configuration file"
+#define ERROR_PARAMTER "Parameter "
+#define ERROR_IS_NOT_SET " is not set"
+#define ERROR_FILE "File: "
+#define ERROR_LINE "Line: "
+#define ERROR_MASSAGE "Massage: "
+#define ERROR_THE_CONFIGURATION_FILE "The configuration file "
 #define ERROR_COULD_NOT_OPEN " couldn’t be open"
 #define DUMMY "temp"
-#define SKIP "skip"
-#define SKIP_EMPTY_LINE "skip empty line"
 #define SUFFIX_JPEG ".jpg"
 #define SUFFIX_PNG ".png"
 #define SUFFIX_BMP ".bmp"
@@ -227,10 +223,41 @@ int spConfigGetPCADim(const SPConfig config, SP_CONFIG_MSG* msg);
  */
 SP_CONFIG_MSG spConfigGetImagePath(char* imagePath, const SPConfig config,
 		int index);
-
+/**
+ * Given an index 'index' the function stores in imageFeatsPath the full path of the
+ * ith image with suffix of .feats.
+ *
+ * Thus the address given by imagePath must contain enough space to
+ * store the resulting string.
+ *
+ * @param imageFeatsPath - an address to store the result in, it must contain enough space.
+ * @param config - the configuration structure
+ * @param index - the index of the image.
+ *
+ * @return
+ * - SP_CONFIG_INVALID_ARGUMENT - if imageFeatsPath == NULL or config == NULL
+ * - SP_CONFIG_INDEX_OUT_OF_RANGE - if index >= spNumOfImages
+ * - SP_CONFIG_SUCCESS - in case of success
+ */
 SP_CONFIG_MSG spConfigGetImageFeatsPath(char* imageFeatsPath, const SPConfig config,
 		int index);
-
+/**
+ * Given an index 'index' the function stores in imagePath the full path of the
+ * ith image with suffix of .feats.
+ *
+ * Thus the address given by imagePath must contain enough space to
+ * store the resulting string.
+ *
+ * @param imageFeatsPath - an address to store the result in, it must contain enough space.
+ * @param config - the configuration structure
+ * @param index - the index of the image.
+ * @param suffix - the suffix of the imagepath.
+ *
+ * @return
+ * - SP_CONFIG_INVALID_ARGUMENT - if imagePath == NULL or config == NULL
+ * - SP_CONFIG_INDEX_OUT_OF_RANGE - if index >= spNumOfImages
+ * - SP_CONFIG_SUCCESS - in case of success
+ */
 SP_CONFIG_MSG spConfigGetImageCombPath(char* imagePath, const SPConfig config,
 		int index, char* suffix);
 
@@ -273,7 +300,7 @@ void spConfigDestroy(SPConfig config);
 int spConfigGetNumOfSimilarImage (const SPConfig config,SP_CONFIG_MSG* msg);
 
 /*
- * Returns split method.
+ * Returns  the split method retrieved from config file.
  *
  * @param config - the configuration structure
  * @assert msg != NULL
@@ -330,13 +357,69 @@ int spConfigLoggerLevel (const SPConfig config, SP_CONFIG_MSG* msg);
 
 SP_CONFIG_MSG spConfigGetLoggerFilename(char* loggerFileName, const SPConfig config);
 
-
+/**
+ * The function checks if all the needed parameters were initiated
+ *
+ *
+ * @param filename - the name of the config file name -needed for error handling.
+ * @param config - the configuration structure
+ * @param msg - pointer in which the msg returned by the function is stored
+ * @param line - Int represnt the number of lines the were read from config file
+ * @return
+ * 	- True if all parameter were initiated
+ * 	- False if some of them were not initiated -> an error will be printed to stdout
+ * 											   -> msg will get the reason for the failure
+ * 											   -> the program will end.
+ *
+ */
 bool spIsDefaultInitiate(const char* filename, SP_CONFIG_MSG* msg,SPConfig config, int line);
 
-SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg);
+/**
+ * The function will print regular errors to stdout
+ *
+ *
+ * @param filename - the name of the config file name -needed for error handling.
+ * @param line - Int represent the number of lines the were read from config file
+ * @param ErrorTypeNum - Int represent the number what type of error needed to be print
+ * 						0 ->  If a line is invalid
+ * 						1 ->  If any of the constraints on the system parameters did not meet
+ * 						2 ->  If a parameter with no default value was not set
+ * @param paramterName - String represent the parameter name if it needed to be printed
+ *
+ *
+ */
 void spRegularErrorPrinter(const char* filename, int line,int ErrorTypeNum, char* paramterName);
-bool spAssignArgument(SPConfig config, char* variable_name, char* variable_value,SP_CONFIG_MSG* msg, int line,
+
+/**
+ * The function will assign the value to the proper variable in the config structure
+ *
+ * @param config - the configuration structure
+ * @param variable_name - String represent the parameter name
+ * @param variable_value - String represent the value needed to assigned
+ * @param msg - pointer in which the msg returned by the function is stored
+ * @param line - Int represent the number of lines the were read from config file
+ * @param filename - the name of the config file name -needed for error handling.
+ *  * @return
+ * 	- True if the parameter was assigned properly
+ * 	- False if some error happen -> the program will print the proper error
+ * 									and assign the error reason to msg.
+ *
+ */
+bool spAssignArgument(SPConfig config, char* variable_name, char* variable_value, SP_CONFIG_MSG* msg, int line,
 		const char* filename);
+/**
+ * The function will print the proper msg to the logger file
+ *
+ * @param msg - the msg that should be print to logger
+ *
+ */
 void spConfigPrintConfigMsgToLogger (SP_CONFIG_MSG msg);
+/**
+ * The function will print the proper msg to stdout
+ *
+ * @param msg - the msg that should be print to stdout
+ *
+ */
+void spConfigPrintConfigMsgToStdout (SP_CONFIG_MSG msg);
 
 #endif /* SPCONFIG_H_ */
