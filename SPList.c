@@ -40,6 +40,7 @@ void destroyNode(Node node) {
 		spListElementDestroy(node->data);
 	}
 	free(node);
+	node = NULL;
 }
 
 SPList spListCreate() {
@@ -246,4 +247,5 @@ void spListDestroy(SPList list) {
 	destroyNode(list->head);
 	destroyNode(list->tail);
 	free(list);
+	list = NULL;
 }

@@ -167,11 +167,15 @@ int main(int argc, char** argv)
 
 			return 0;
 		}
+
+		freeImagesFeatures(imagesFeatures, numOfImages);
+		imagesFeatures = NULL;
 	}
 	else
 	{
 		spConfigPrintConfigMsgToStdout(configMsg);
 		free(configFileName);
+		configFileName = NULL;
 		return 0;
 	}
 
@@ -233,8 +237,11 @@ int main(int argc, char** argv)
 		}
 
 		free(queryPath);
+		queryPath = NULL;
 		spImageDestroy(query);
+		query = NULL;
 		freeSimilarImagesPathes(SimilarImagesPathes, config);
+		SimilarImagesPathes = NULL;
 
 		flushed_printf(QUERY_IMAGE_PROMPT);
 		queryPath = flushed_gets();

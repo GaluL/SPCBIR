@@ -102,6 +102,7 @@ SPImage spImageCreateFromFeats(const char* featsFileName, int imgIndex)
 			{
 				spLoggerPrintError(SP_FAILED_READ_FROM_FILE, __FILE__, __func__, __LINE__);
 				free(currPointCoords);
+				currPointCoords = NULL;
 				spImageDestroy(res);
 				fclose(fp);
 				return NULL;
@@ -113,6 +114,7 @@ SPImage spImageCreateFromFeats(const char* featsFileName, int imgIndex)
 		if (currPointCoords)
 		{
 			free(currPointCoords);
+			currPointCoords = NULL;
 		}
 	}
 
@@ -199,13 +201,16 @@ void spImageDestroy(SPImage image)
 				if (image->feats[i])
 				{
 					spPointDestroy(image->feats[i]);
+					image->feats[i] = NULL;
 				}
 			}
 
 			free(image->feats);
+			image->feats = NULL;
 		}
 
 		free(image);
+		image = NULL;
 	}
 }
 

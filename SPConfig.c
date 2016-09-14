@@ -55,6 +55,7 @@ SPConfig spConfigInit(SP_CONFIG_MSG* msg)
 	{
 		*msg = SP_CONFIG_ALLOC_FAIL;
 		free(config);
+		config = NULL;
 		return NULL;
 	}
 	strcpy(config->spPCAFilename, PCA_FILE_NAME_DEFULT);
@@ -71,7 +72,9 @@ SPConfig spConfigInit(SP_CONFIG_MSG* msg)
 	{
 		*msg = SP_CONFIG_ALLOC_FAIL;
 		free(config->spPCAFilename);
+		config->spPCAFilename = NULL;
 		free(config);
+		config = NULL;
 		return NULL;
 	}
 
@@ -188,6 +191,7 @@ bool setspPCAFilename (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg)
 	if (config->spPCAFilename)
 	{
 		free(config->spPCAFilename);
+		config->spPCAFilename = NULL;
 	}
 
 	config->spPCAFilename = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
@@ -330,6 +334,7 @@ bool setspLoggerFilename (SPConfig config, char* variable_value,SP_CONFIG_MSG* m
 	if (config->spLoggerFilename)
 	{
 		free(config->spLoggerFilename);
+		config->spLoggerFilename = NULL;
 	}
 
 	config->spLoggerFilename = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
@@ -874,24 +879,30 @@ void spConfigDestroy(SPConfig config)
 		if (config->spImagesDirectory)
 		{
 			free(config->spImagesDirectory);
+			config->spImagesDirectory = NULL;
 		}
 		if (config->spImagesPrefix)
 		{
 			free(config->spImagesPrefix);
+			config->spImagesPrefix = NULL;
 		}
 		if (config->spImagesSuffix)
 		{
 			free(config->spImagesSuffix);
+			config->spImagesSuffix = NULL;
 		}
 		if (config->spPCAFilename)
 		{
 			free(config->spPCAFilename);
+			config->spPCAFilename = NULL;
 		}
 		if (config->spLoggerFilename)
 		{
 			free(config->spLoggerFilename);
+			config->spLoggerFilename = NULL;
 		}
 		free (config);
+		config = NULL;
 	}
 }
 bool spIsDefaultInitiate(const char* filename, SP_CONFIG_MSG* msg,SPConfig config, int line)

@@ -87,9 +87,11 @@ void spPointDestroy(SPPoint point)
 		if (point->coords)
 		{
 			free(point->coords);
+			point->coords = NULL;
 		}
 
 		free(point);
+		point = NULL;
 	}
 }
 

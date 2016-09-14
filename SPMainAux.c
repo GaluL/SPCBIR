@@ -30,6 +30,7 @@ void freeImagesFeatures(SPImage* imagesFeatures, int numOfImages)
 	}
 
 	free(imagesFeatures);
+	imagesFeatures = NULL;
 }
 // retrieve the file name  argument fro, the argv.
 char* spGetConfigFileName(int argc, char** argv)
@@ -81,6 +82,7 @@ bool spSerializeImagesFeatures(SPImage* imagesFeatures, SPConfig config)
 	{
 		spConfigPrintConfigMsgToLogger(configMsg);
 		free(imageFeatsPath);
+		imageFeatsPath = NULL;
 		return false;
 	}
 	for (i = 0; i < numOfImages; ++i)
@@ -91,17 +93,20 @@ bool spSerializeImagesFeatures(SPImage* imagesFeatures, SPConfig config)
 		{
 			spConfigPrintConfigMsgToLogger(configMsg);
 			free(imageFeatsPath);
+			imageFeatsPath = NULL;
 			return false;
 		}
 		// saving the image[i] features the the image features path received from config
 		if (!spImageSaveToFeats(imagesFeatures[i], imageFeatsPath))
 		{
 			free(imageFeatsPath);
+			imageFeatsPath = NULL;
 			return false;
 		}
 	}
 
 	free(imageFeatsPath);
+	imageFeatsPath = NULL;
 
 	return true;
 }
@@ -124,6 +129,7 @@ bool spDeserializeImagesFeatures(SPImage** imagesFeatures, SPConfig config)
 	{
 		spConfigPrintConfigMsgToLogger(configMsg);
 		free(imageFeatsPath);
+		imageFeatsPath = NULL;
 		return false;
 	}
 	// allocating memory for the images features
@@ -132,6 +138,7 @@ bool spDeserializeImagesFeatures(SPImage** imagesFeatures, SPConfig config)
 	{
 		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
 		free(imageFeatsPath);
+		imageFeatsPath = NULL;
 		return false;
 	}
 	// for each image assign to image structure from the features in the file
@@ -142,6 +149,7 @@ bool spDeserializeImagesFeatures(SPImage** imagesFeatures, SPConfig config)
 		{
 			spConfigPrintConfigMsgToLogger(configMsg);
 			free(imageFeatsPath);
+			imageFeatsPath = NULL;
 			return false;
 		}
 		 // for each image assign to image structure from the features in the file
@@ -151,12 +159,14 @@ bool spDeserializeImagesFeatures(SPImage** imagesFeatures, SPConfig config)
 			// if a problem occurred freeing all allocated memory
 			freeImagesFeatures((*imagesFeatures),numOfImages);
 			free(imageFeatsPath);
+			imageFeatsPath = NULL;
 			spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
 			return false;
 		 }
 	}
 
 	free(imageFeatsPath);
+	imageFeatsPath = NULL;
 
 	return true;
 }
@@ -239,6 +249,7 @@ char** spGetSimilarImagesPathes(SPConfig config, SPImage queryImage, SPKDTreeNod
 	{
 
 		free(occurencesArr);
+		occurencesArr = NULL;
 		spBPQueueDestroy(topMatchQueue);
 		return NULL;
 	}
@@ -248,6 +259,7 @@ char** spGetSimilarImagesPathes(SPConfig config, SPImage queryImage, SPKDTreeNod
 		if (!spKDTreeNodeKNNSearch(imagesDB, topMatchQueue, spImageGetFeature(queryImage, i)))
 		{
 			free(occurencesArr);
+			occurencesArr = NULL;
 			spBPQueueDestroy(topMatchQueue);
 			return NULL;
 		}
@@ -268,6 +280,7 @@ char** spGetSimilarImagesPathes(SPConfig config, SPImage queryImage, SPKDTreeNod
 	if (!result)
 	{
 		free(occurencesArr);
+		occurencesArr = NULL;
 		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
 	}
 
@@ -278,6 +291,7 @@ char** spGetSimilarImagesPathes(SPConfig config, SPImage queryImage, SPKDTreeNod
 		{
 			spDestroyResult(result, numOfSimilarImages);
 			free(occurencesArr);
+			occurencesArr = NULL;
 			spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
 		}
 	}
@@ -288,11 +302,13 @@ char** spGetSimilarImagesPathes(SPConfig config, SPImage queryImage, SPKDTreeNod
 		{
 			spDestroyResult(result, numOfSimilarImages);
 			free(occurencesArr);
+			occurencesArr = NULL;
 			spConfigPrintConfigMsgToLogger(configMsg);
 			return NULL;
 		}
 	}
 	free(occurencesArr);
+	occurencesArr = NULL;
 	return result;
 }
 // free allocated array of strings
@@ -306,9 +322,11 @@ void spDestroyResult(char** result,int numOfSimilarImages)
 			if (result[i])
 			{
 				free(result[i]);
+				result[i] = NULL;
 			}
 		}
 	free (result);
+	result = NULL;
 	}
 }
 // print a string
@@ -354,12 +372,14 @@ void freeSimilarImagesPathes(char** SimilarImagesPathes,SPConfig config )
 		if (SimilarImagesPathes[i])
 		{
 			free(SimilarImagesPathes[i]);
+			SimilarImagesPathes[i] = NULL;
 		}
 	}
 
 	if (SimilarImagesPathes)
 	{
 		free(SimilarImagesPathes);
+		SimilarImagesPathes = NULL;
 	}
 }
 
@@ -433,6 +453,7 @@ void destroyVariables(char* configFileName, SPConfig config, SPImage* imagesFeat
 	if (configFileName)
 	{
 		free(configFileName);
+		configFileName = NULL;
 	}
 
 	if (imagesFeatures)
@@ -443,6 +464,7 @@ void destroyVariables(char* configFileName, SPConfig config, SPImage* imagesFeat
 	if (queryPath)
 	{
 		free(queryPath);
+		queryPath = NULL;
 	}
 
 	if (featuresKDTree)

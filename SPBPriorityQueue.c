@@ -116,6 +116,7 @@ void spBPQueueDestroy(SPBPQueue source)
 	}
 
 	free(source);
+	source = NULL;
 }
 
 /**

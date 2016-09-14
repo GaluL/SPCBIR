@@ -347,7 +347,7 @@ int spConfigLoggerLevel (const SPConfig config, SP_CONFIG_MSG* msg);
  * Thus the address given by pcaPath must contain enough space to
  * store the resulting string.
  *
- * @param loggerfilename - an address to store the result in, it must contain enough space.
+ * @param loggerFileName - an address to store the result in, it must contain enough space.
  * @param config - the configuration structure
  * @return
  *  - SP_CONFIG_INVALID_ARGUMENT - if imagePath == NULL or config == NULL

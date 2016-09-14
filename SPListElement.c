@@ -41,6 +41,7 @@ void spListElementDestroy(SPListElement data) {
 		return;
 	}
 	free(data);
+	data = NULL;
 }
 
 SP_ELEMENT_MSG spListElementSetIndex(SPListElement data, int index) {

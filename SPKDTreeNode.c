@@ -194,6 +194,7 @@ void spKDTreeNodeDestroy(SPKDTreeNode kdTreeNode)
 	}
 
 	free(kdTreeNode);
+	kdTreeNode = NULL;
 }
 
 bool SPKDTreeNodeIsLeaf(SPKDTreeNode node)
@@ -303,6 +304,7 @@ void freeFeaturesArray(SPPoint* featuresArr, int size)
 		}
 
 		free(featuresArr);
+		featuresArr = NULL;
 	}
 }
 

@@ -80,6 +80,7 @@ bool sortPointIndexesByDim(SPKDArray kdArr , int axis)
 	}
 
 	free(dimCoords);
+	dimCoords = NULL;
 
 	// If nothing went wrong - return true
 	return true;
@@ -265,16 +266,19 @@ void freeIndexMaps(int* indexMapToSide, int* indexMapLeft, int* indexMapRight)
 	if (indexMapRight)
 	{
 		free(indexMapRight);
+		indexMapRight = NULL;
 	}
 
 	if (indexMapLeft)
 	{
 		free(indexMapLeft);
+		indexMapLeft = NULL;
 	}
 
 	if (indexMapToSide)
 	{
 		free(indexMapToSide);
+		indexMapToSide = NULL;
 	}
 }
 
@@ -432,6 +436,7 @@ void spKDArrayDestroy(SPKDArray kdArr)
 	{
 		return;
 	}
+
 	// Frees all the points of the array if allocated
 	if (kdArr->points)
 	{
@@ -445,6 +450,7 @@ void spKDArrayDestroy(SPKDArray kdArr)
 
 		// Frees the array point itself
 		free(kdArr->points);
+		kdArr->points = NULL;
 	}
 
 	// Frees the index matrix if exists
@@ -455,14 +461,17 @@ void spKDArrayDestroy(SPKDArray kdArr)
 			if (kdArr->dimsSortedIndexesMat[i])
 			{
 				free(kdArr->dimsSortedIndexesMat[i]);
+				kdArr->dimsSortedIndexesMat[i] = NULL;
 			}
 		}
 
 		free(kdArr->dimsSortedIndexesMat);
+		kdArr->dimsSortedIndexesMat = NULL;
 	}
 
 	// Frees the array object
 	free(kdArr);
+	kdArr = NULL;
 }
 
 int spKDArrayGetSize(SPKDArray kdArr)
