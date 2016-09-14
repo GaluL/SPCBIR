@@ -38,16 +38,31 @@
  * @param argv
  * @param argc
  * @return
- *  - string represent the configfile name
+ *  - string represent the config file name
+ *  - if nothing was entered default will be chosen
  *  -
- *  - SP_CONFIG_ALLOC_FAIL - if allocation failure occurred
- *  - SP_CONFIG_SUCCESS - in case of success
+ *  - error will be printed to stdout if user entered invalid command line
  */
 char* spGetConfigFileName(int argc, char** argv);
 
 
-
+/*
+ * Write the image features to  a file received from the config file.
+ *
+ * @param imagesFeatures - the images data base to create the tree from.
+ * @param config - the config.
+ *
+ * @return
+ * - SPKDTreeNode represent who is the root of the KDtree
+ *
+ * - NULL - if some error occurred
+ * - print to logger file if some error occurred
+ *
+ *
+ */
 bool spSerializeImagesFeatures(SPImage* imagesFeatures, SPConfig config);
+
+
 bool spDeserializeImagesFeatures(SPImage** imagesFeatures, SPConfig config);
 char** spGetSimilarImagesPathes(SPConfig config, SPImage queryImage, SPKDTreeNode imagesDB);
 void flushed_printf(const char* str);
