@@ -389,62 +389,56 @@ void freeSimilarImagesPathes(char** SimilarImagesPathes,SPConfig config )
 	}
 }
 
-void setMyLoggerLevel(int level, SP_LOGGER_LEVEL* loggerLevel)
-{
-	switch(level)
-	{
-		case (1):
-		{
-			*loggerLevel = SP_LOGGER_ERROR_LEVEL;
-			break;
-		}
-		case (2):
-		{
-			*loggerLevel = SP_LOGGER_WARNING_ERROR_LEVEL;
-			break;
-		}
-		case (3):
-		{
-			*loggerLevel = SP_LOGGER_INFO_WARNING_ERROR_LEVEL;
-			break;
-		}
-		case (4):
-		{
-			*loggerLevel = SP_LOGGER_DEBUG_INFO_WARNING_ERROR_LEVEL;
-			break;
-		}
-	}
-}
-
+// Initializing the logger according to level and filename setting stored in config file
 bool initLoggerFromConfig(SPConfig config)
 {
 	SP_CONFIG_MSG configMsg;
 	char* loggerFileName = NULL;
 	int loggerLevel = -1;
+	bool isStdout = false;
 
-	configMsg = spConfigGetLoggerFilename(loggerFileName, config);
-
-	if (configMsg != SP_CONFIG_SUCCESS)
+	// Allocating buffer for logger file name
+	loggerFileName = (char*)malloc((MAX_FILE_PATH_LEN + 1) * sizeof(char));
+	if (!loggerFileName)
 	{
-		spConfigPrintConfigMsgToLogger(configMsg,__FILE__,__func__, __LINE__);
-
+		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
 		return false;
 	}
 
+	// Getting logger file name to write to
+	configMsg = spConfigGetLoggerFilename(loggerFileName, config);
+	if (configMsg != SP_CONFIG_SUCCESS)
+	{
+		spConfigPrintConfigMsgToLogger(configMsg, __FILE__, __func__, __LINE__);
+		free(loggerFileName);
+		loggerFileName = NULL;
+		return false;
+	}
+
+	// Getting logger reporting level
 	loggerLevel = spConfigLoggerLevel(config, &configMsg);
 	if (configMsg != SP_CONFIG_SUCCESS)
 	{
-		spConfigPrintConfigMsgToLogger(configMsg,__FILE__,__func__, __LINE__);
-
+		spConfigPrintConfigMsgToLogger(configMsg, __FILE__, __func__, __LINE__);
+		free(loggerFileName);
+		loggerFileName = NULL;
 		return false;
 	}
 
-	if (!spLoggerCreate(loggerFileName, loggerLevel) != SP_LOGGER_SUCCESS)
+	// Stores true if logger filename is "stdout" and else otherwise
+	isStdout = (strcmp(loggerFileName, LOGGER_FILE_NAME_DEFULT) == 0);
+
+	// Passing null if logger output is stdout (to make logger write to stdout)
+	// and logger filename otherwise
+	if (spLoggerCreate((isStdout ? NULL : loggerFileName), loggerLevel) != SP_LOGGER_SUCCESS)
 	{
-		// TODO: handle
-
+		free(loggerFileName);
+		loggerFileName = NULL;
 		return false;
 	}
+
+	free(loggerFileName);
+	loggerFileName = NULL;
 
 	return true;
 }

@@ -121,14 +121,6 @@ void freeImagesFeatures(SPImage* imagesFeatures, int numOfImages);
 void spDestroyResult(char** result,int numOfSimilarImages);
 
 /*
- * choose the right logger level base one the level received as argument
- *
- * @param int level - the level degree
- * @param loggerLevel - the variable to assign the logger level to
- *
- */
-void setMyLoggerLevel(int level, SP_LOGGER_LEVEL* loggerLevel);
-/*
  * free allocated memory in  the received variable.
  *
  */

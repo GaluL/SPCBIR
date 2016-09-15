@@ -1011,8 +1011,8 @@ int spConfigLoggerLevel (const SPConfig config,SP_CONFIG_MSG* msg)
 		return config->spLoggerLevel;
 
 }
-// getter for spLoggerFilename
 
+// getter for spLoggerFilename
 SP_CONFIG_MSG spConfigGetLoggerFilename(char* loggerFileName, const SPConfig config)
 {
 	if ((!config)||(!loggerFileName))
@@ -1020,16 +1020,11 @@ SP_CONFIG_MSG spConfigGetLoggerFilename(char* loggerFileName, const SPConfig con
 		return SP_CONFIG_INVALID_ARGUMENT;
 	}
 
-	loggerFileName = (char*)malloc((strlen(config->spLoggerFilename) + 1) * sizeof(char));
-	if (!loggerFileName)
-	{
-		return SP_CONFIG_ALLOC_FAIL;
-	}
-
 	strcpy(loggerFileName, config->spLoggerFilename);
 
 	return SP_CONFIG_SUCCESS;
 }
+
 // print the massage stored in msg to the logger file
 void spConfigPrintConfigMsgToLogger (SP_CONFIG_MSG msg, const char* file, const char * func, int line)
 {
