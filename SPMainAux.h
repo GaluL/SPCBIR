@@ -15,7 +15,7 @@
 
 #define MAX_FILE_PATH_LEN 1024
 #define ERROR_INVALID_COMAND_LINE "Invalid command line : use -c "
-#define ERROR_THE_CONFIGURATION "The configuration file"
+#define ERROR_THE_CONFIGURATION "The configuration file "
 //#define ERROR_COULD_NOT_OPEN "couldn’t be open\n"
 #define ERROR_SPCBIR_NOT_OPEN "The default configuration file spcbir.config couldn’t be open\n"
 #define MSG_EXIT "Exiting...\n"
@@ -53,27 +53,100 @@ char* spGetConfigFileName(int argc, char** argv);
  * @param config - the config.
  *
  * @return
- * - SPKDTreeNode represent who is the root of the KDtree
+ * - true if all features were saved correctly
  *
- * - NULL - if some error occurred
+ * - false - if some error occurred
  * - print to logger file if some error occurred
  *
  *
  */
 bool spSerializeImagesFeatures(SPImage* imagesFeatures, SPConfig config);
 
-
+/*
+ * reading features from file and assigning them to imagesFeature structure
+ *
+ * @param imagesFeatures - the images  data base that each the feature read from file will assign to
+ * @param config - the config.
+ *
+ * @return
+ * - true if all pictures features were saved correctly
+ *
+ * - false - if some error occurred
+ * - print to logger file if some error occurred
+ *
+ *
+ */
 bool spDeserializeImagesFeatures(SPImage** imagesFeatures, SPConfig config);
+
+/*
+ * get the path of the most similar images the query image from the images data base
+ *
+ * @param config - the config.
+ * @param queryImage - the query image for it we want to find the similar pictures
+ * @param config - imagesDB the kd tree data base were we look for the  similar images
+ *
+ * @return
+ * - A sorted array of string representing the path of the most similar images to the query
+ * - in the first place the most similar image path
+ *
+ * - NULL - if some error occurred
+ * - print to logger file if some error occurred
+ *
+ *
+ */
 char** spGetSimilarImagesPathes(SPConfig config, SPImage queryImage, SPKDTreeNode imagesDB);
+/*
+ * print to stdout the received string argument
+ */
 void flushed_printf(const char* str);
+/*
+ * print to stdout the received string argument with a new line
+ */
 void flushed_printf_newline(const char* str);
+/*
+ * return the received value from stdin
+ */
 char* flushed_gets();
+/*
+ * free allocated memory in SimilarImagesPathes
+ */
 void freeSimilarImagesPathes(char** SimilarImagesPathes,SPConfig config );
+/*
+ * free allocated memory in imagesFeatures
+ */
 void freeImagesFeatures(SPImage* imagesFeatures, int numOfImages);
+/*
+ * free allocated memory in result
+ */
 void spDestroyResult(char** result,int numOfSimilarImages);
+
+/*
+ * choose the right logger level base one the level received as argument
+ *
+ * @param int level - the level degree
+ * @param loggerLevel - the variable to assign the logger level to
+ *
+ */
 void setMyLoggerLevel(int level, SP_LOGGER_LEVEL* loggerLevel);
+/*
+ * free allocated memory in  the received variable.
+ *
+ */
 void destroyVariables(char* configFileName, SPConfig config, SPImage* imagesFeatures,
 		char* queryPath, SPKDTreeNode featuresKDTree, SPImage query, char** SimilarImagesPathes);
+
+/*
+ * initiate the logger base on the logger file name received in the config
+ *
+ * @param config - the config.
+ * @return
+ * - true if the logger was initiated properly
+ *
+ * - false - if some error occurred
+ * - print to stdout  if some error occurred
+ *
+ *
+ */
 bool initLoggerFromConfig(SPConfig config);
 
 #endif /* SPMAINAUX_H_ */

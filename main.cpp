@@ -19,6 +19,7 @@ extern "C"
 #include "SPLogger.h"
 }
 
+// extracting the features from image path
 SPImage extractImageFeatures(sp::ImageProc* imgProc, const char* imagePath, int index)
 {
 	SPPoint* features = NULL;
@@ -32,7 +33,7 @@ SPImage extractImageFeatures(sp::ImageProc* imgProc, const char* imagePath, int 
 
 	return spImageCreateFromImg(features, featuresExtracted);
 }
-
+// creating the images feature Data base.
 SPImage* extractImagesFeatures(const SPConfig config, sp::ImageProc* imgProc, int numOfImages)
 {
 	SPImage* imagesFeatures = NULL;
@@ -40,16 +41,17 @@ SPImage* extractImagesFeatures(const SPConfig config, sp::ImageProc* imgProc, in
 	char* imagePath = (char*)malloc((MAX_FILE_PATH_LEN + 1) * sizeof(char));
 	if (!imagePath)
 	{
+		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
 		return NULL;
 	}
-
+	// alocate memory for the images features data base
 	imagesFeatures = (SPImage*)malloc(numOfImages * sizeof(SPImage));
 	if (!imagesFeatures)
 	{
 		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
 		return NULL;
 	}
-
+	// Iterating over the images extrcating the featears of each one of them
 	for (i = 0; i < numOfImages; ++i)
 	{
 		spConfigGetImagePath(imagePath, config, i);
@@ -64,7 +66,7 @@ SPImage* extractImagesFeatures(const SPConfig config, sp::ImageProc* imgProc, in
 
 	return imagesFeatures;
 }
-
+// free all allocated memory in the received arguments
 void destroyMainVariables(char* configFileName, SPConfig config, sp::ImageProc* imgProc,
 		SPImage* imagesFeatures, char* queryPath, SPKDTreeNode featuresKDTree, SPImage query,
 		char** SimilarImagesPathes)
@@ -73,7 +75,7 @@ void destroyMainVariables(char* configFileName, SPConfig config, sp::ImageProc* 
 	{
 		delete imgProc;
 	}
-
+	// call the function to free aloocated memory.
 	destroyVariables(configFileName, config, imagesFeatures, queryPath, featuresKDTree, query,
 		SimilarImagesPathes);
 }
@@ -92,45 +94,54 @@ int main(int argc, char** argv)
 	int i = 0;
 	SPImage query = NULL;
 	bool minimalGUI = false;
+	// getting from user the config file name
+	// if nothing was entered default will be chosen.
 	char* configFileName = spGetConfigFileName(argc, argv);
 
+	// allocate memory for the config file name
 	if (!configFileName)
 	{
+		flushed_printf_newline(SP_ALLOCATION_FAILURE);
 		return 0;
 	}
-
+	// creating the config
 	config = spConfigCreate(configFileName, &configMsg);
 	if (config)
 	{
 		if (!initLoggerFromConfig(config))
 		{
-			// TODO: handle
-		}
-
-		imgProc = new sp::ImageProc(config);
-
-		numOfImages = spConfigGetNumOfImages(config, &configMsg);
-		if (configMsg != SP_CONFIG_SUCCESS)
-		{
-			spConfigPrintConfigMsgToLogger(configMsg);
-			spLoggerDestroy();
+			flushed_printf_newline(SP_ERROR_OPEN_LOGGER);
 			spConfigDestroy(config);
-
+			free(configFileName);
+			configFileName = NULL;
 			return 0;
 		}
 
+		imgProc = new sp::ImageProc(config);
+		// get the num of images
+		numOfImages = spConfigGetNumOfImages(config, &configMsg);
+		if (configMsg != SP_CONFIG_SUCCESS)
+		{
+			spConfigPrintConfigMsgToLogger(configMsg,__FILE__,__func__, __LINE__);
+			spConfigDestroy(config);
+			free(configFileName);
+			configFileName = NULL;
+			return 0;
+		}
+		// get the extract mode
 		extractMode = spConfigIsExtractionMode(config, &configMsg);
 		if (configMsg != SP_CONFIG_SUCCESS)
 		{
-			spConfigPrintConfigMsgToLogger(configMsg);
+			spConfigPrintConfigMsgToLogger(configMsg,__FILE__,__func__, __LINE__);
 			destroyMainVariables(configFileName, config, imgProc, imagesFeatures, queryPath,
 					featuresKDTree, query, SimilarImagesPathes);
 
 			return 0;
 		}
-
+		// if extraction needed:
 		if (extractMode)
 		{
+			// craeting the images features data base
 			imagesFeatures = extractImagesFeatures(config, imgProc, numOfImages);
 			if (!imagesFeatures)
 			{
@@ -139,7 +150,7 @@ int main(int argc, char** argv)
 
 				return 0;
 			}
-
+			// Serialize the ImagesFeatures to the file given in the config
 			if (!spSerializeImagesFeatures(imagesFeatures, config))
 			{
 				destroyMainVariables(configFileName, config, imgProc, imagesFeatures, queryPath,
@@ -150,6 +161,7 @@ int main(int argc, char** argv)
 		}
 		else
 		{
+			//deSerialize the ImagesFeatures - assugning them to imagesfaeture datebase
 			if (!spDeserializeImagesFeatures(&imagesFeatures, config))
 			{
 				destroyMainVariables(configFileName, config, imgProc, imagesFeatures, queryPath,
@@ -158,7 +170,7 @@ int main(int argc, char** argv)
 				return 0;
 			}
 		}
-
+		//create kdTree based on array of imagesFeatures
 		featuresKDTree = spCreateKDTreeFromImages(imagesFeatures, config);
 		if (!featuresKDTree)
 		{
@@ -173,24 +185,28 @@ int main(int argc, char** argv)
 	}
 	else
 	{
+		// config failed to be read - print the error to stdout
 		spConfigPrintConfigMsgToStdout(configMsg);
 		free(configFileName);
 		configFileName = NULL;
 		return 0;
 	}
-
+	// asking the user for an image
 	flushed_printf(QUERY_IMAGE_PROMPT);
 	queryPath = flushed_gets();
+	// if something went worng print the error to terminate the program
 	if (!queryPath)
 	{
+		flushed_printf_newline(SP_ALLOCATION_FAILURE);
 		destroyMainVariables(configFileName, config, imgProc, imagesFeatures, queryPath,
 				featuresKDTree, query, SimilarImagesPathes);
 
 		return 0;
 	}
-
+	// while the termination(<>) sign was nor given :
 	while (strcmp(TERMINATION_SIGN, queryPath) != 0)
 	{
+		// getting the quary features and assign them to image structure
 		query = extractImageFeatures(imgProc, queryPath, 666);
 		if (!query)
 		{
@@ -199,7 +215,7 @@ int main(int argc, char** argv)
 
 			return 0;
 		}
-
+		// find the most similar images paths from the database received before
 		SimilarImagesPathes = spGetSimilarImagesPathes(config, query, featuresKDTree);
 		if (!SimilarImagesPathes)
 		{
@@ -208,7 +224,7 @@ int main(int argc, char** argv)
 
 			return 0;
 		}
-
+		// check for minimal gui mode for presenting the the results
 		minimalGUI = spConfigMinimalGui(config,&configMsg);
 		if (configMsg != SP_CONFIG_SUCCESS)
 		{
@@ -235,18 +251,19 @@ int main(int argc, char** argv)
 				flushed_printf_newline(SimilarImagesPathes[i]);
 			}
 		}
-
+		// clean allocated memory and getting ready for the next image from user
 		free(queryPath);
 		queryPath = NULL;
 		spImageDestroy(query);
 		query = NULL;
 		freeSimilarImagesPathes(SimilarImagesPathes, config);
 		SimilarImagesPathes = NULL;
-
+		// ask for the next image from user
 		flushed_printf(QUERY_IMAGE_PROMPT);
 		queryPath = flushed_gets();
 		if (!queryPath)
 		{
+			flushed_printf_newline(SP_ALLOCATION_FAILURE);
 			destroyMainVariables(configFileName, config, imgProc, imagesFeatures, queryPath,
 					featuresKDTree, query, SimilarImagesPathes);
 

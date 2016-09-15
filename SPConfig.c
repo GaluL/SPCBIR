@@ -34,15 +34,15 @@ struct sp_config_t
 
 } ;
 
-// function that sets the default values of the struct.
+// function that sets the default values of the structure.
 
 SPConfig spConfigInit(SP_CONFIG_MSG* msg)
 {
 	SPConfig config = NULL;
 	config = (SPConfig)malloc(sizeof(*config));
+	// the error will be printed from the calller.
 	if (!config)
 	{
-		// add error memory allocation failure
 		return NULL;
 	}
 	config->spImagesDirectory = NULL;
@@ -90,7 +90,7 @@ SPConfig spConfigInit(SP_CONFIG_MSG* msg)
  */
 void spRegularErrorPrinter(const char* filename, int line,int ErrorTypeNum, char* paramterName)
 {
-	// An array the hold the key word for the error array[0]
+	// An array the hold the key word for the error array
 	char * errorArray[] = {ERROR_INVALID_CONFIGURATION_LINE,ERROR_INVALID_VALUE,
 			 ERROR_PARAMTER,ERROR_IS_NOT_SET};
 
@@ -108,6 +108,7 @@ void spRegularErrorPrinter(const char* filename, int line,int ErrorTypeNum, char
 	}
 
 }
+// setter for spImagesDirectory
 bool setspImagesDirectory (SPConfig config, char* variable_value, SP_CONFIG_MSG* msg)
 {
 	config->spImagesDirectory = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
@@ -116,10 +117,10 @@ bool setspImagesDirectory (SPConfig config, char* variable_value, SP_CONFIG_MSG*
 		*msg = SP_CONFIG_ALLOC_FAIL;
 		return false;
 	}
-
 	strcpy(config->spImagesDirectory,variable_value);
 	return true;
 }
+// setter for spImagesPrefix
 bool setspImagesPrefix (SPConfig config, char* variable_value, SP_CONFIG_MSG* msg)
 {
 	config->spImagesPrefix = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
@@ -132,22 +133,24 @@ bool setspImagesPrefix (SPConfig config, char* variable_value, SP_CONFIG_MSG* ms
 	strcpy(config->spImagesPrefix,variable_value);
 	return true;
 }
+// setter for spImagesSuffix
 bool setspImagesSuffix (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, int line,
 		const char* filename)
 {
+	// check we got one of the right suffix
 	if ((strcmp(variable_value,SUFFIX_JPEG)== 0) || (strcmp(variable_value,SUFFIX_PNG)== 0)||
 			(strcmp(variable_value,SUFFIX_BMP)== 0) || (strcmp(variable_value,SUFFIX_GIF)== 0))
 	{
 		config->spImagesSuffix = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
 		if (!config->spImagesSuffix)
 		{
-			//TODO THINK WHAT TO DO HERE
 			*msg = SP_CONFIG_ALLOC_FAIL;
 			return false;
 		}
 		strcpy(config->spImagesSuffix,variable_value);
 		return true;
 	}
+	// if we got  other suffix return invalid string
 	else
 	{
 		*msg = SP_CONFIG_INVALID_STRING;
@@ -155,9 +158,11 @@ bool setspImagesSuffix (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg
 		return false;
 	}
 }
+// setter for spNumOfImages
 bool setspNumOfImages (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, int line,
 		const char* filename)
 {
+	// check for the constraint
 	if (atoi(variable_value) > 0)
 	{
 		config->spNumOfImages = atoi(variable_value);
@@ -170,9 +175,11 @@ bool setspNumOfImages (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg,
 		return false;
 	}
 }
+// setter for spPCADimension
 bool setspPCADimension (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, int line,
 		const char* filename)
 {
+	// check for the constraint
 	if ((atoi(variable_value) > SP_PCA_DIMENSION_CONSTRAINT_LOW )&&
 					(atoi(variable_value) < SP_PCA_DIMENSION_CONSTRAINT_HIGH))
 	{
@@ -186,8 +193,10 @@ bool setspPCADimension (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg
 		return false;
 	}
 }
+// setter for spPCAFilename
 bool setspPCAFilename (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg)
 {
+	// releasing the default value assigned before
 	if (config->spPCAFilename)
 	{
 		free(config->spPCAFilename);
@@ -203,9 +212,11 @@ bool setspPCAFilename (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg)
 	strcpy(config->spPCAFilename, variable_value);
 	return true;
 }
+// setter for spNumOfFeatures
 bool setspNumOfFeatures (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, int line,
 		const char* filename)
 {
+	// check for the constraint
 	if (atoi(variable_value) > 0)
 	{
 		config->spNumOfFeatures = atoi(variable_value);
@@ -218,9 +229,11 @@ bool setspNumOfFeatures (SPConfig config, char* variable_value,SP_CONFIG_MSG* ms
 		return false;
 	}
 }
+// setter for spExtractionMode
 bool setspExtractionMode (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, int line,
 		const char* filename)
 {
+	// check for the constraint
 	if (strcmp(variable_value,MODE_TRUE)== 0)
 	{
 		config->spExtractionMode = true;
@@ -240,9 +253,11 @@ bool setspExtractionMode (SPConfig config, char* variable_value,SP_CONFIG_MSG* m
 		return false;
 	}
 }
+// setter for spNumOfSimilarImages
 bool setspNumOfSimilarImages (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, int line,
 			const char* filename)
 {
+	// check for the constraint
 	if(atoi(variable_value) > 0)
 	{
 		config->spNumOfSimilarImages  = atoi(variable_value);
@@ -255,10 +270,11 @@ bool setspNumOfSimilarImages (SPConfig config, char* variable_value,SP_CONFIG_MS
 		return false;
 	}
 }
-
+// setter for spKDTreeSplitMethod
 bool setspKDTreeSplitMethod (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, int line,
 			const char* filename)
 {
+	// check for the constraint
 	if (! strcmp(variable_value, SPLIT_METHOD_RANDOM))
 	{
 		config->spKDTreeSplitMethod  = RANDOM;
@@ -279,10 +295,11 @@ bool setspKDTreeSplitMethod (SPConfig config, char* variable_value,SP_CONFIG_MSG
 	}
 	return true;
 }
-
+// setter for spKNN
 bool setspKNN (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, int line,
 			const char* filename)
 {
+	// check for the constraint
 	if(atoi(variable_value) > 0)
 	{
 		config->spKNN = atoi(variable_value);
@@ -295,9 +312,11 @@ bool setspKNN (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, int lin
 		return false;
 	}
 }
+// setter for spMinimalGUI
 bool setspMinimalGUI (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, int line,
 			const char* filename)
 {
+	// check for the constraint
 	if (strcmp(variable_value,MODE_TRUE)== 0)
 	{
 		config->spMinimalGUI = true;
@@ -314,9 +333,11 @@ bool setspMinimalGUI (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, 
 	}
 	return true;
 }
+// setter for spLoggerLevel
 bool setspLoggerLevel (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, int line,
 			const char* filename)
 {
+	// check for the constraint
 	if ((atoi(variable_value) > LOGGER_LEVEL_MIN) && (atoi(variable_value) < LOGGER_LEVEL_MAX))
 	{
 		config->spLoggerLevel = atoi(variable_value);
@@ -329,6 +350,7 @@ bool setspLoggerLevel (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg,
 		return false;
 	}
 }
+// setter for spLoggerFilename
 bool setspLoggerFilename (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg)
 {
 	if (config->spLoggerFilename)
@@ -347,7 +369,7 @@ bool setspLoggerFilename (SPConfig config, char* variable_value,SP_CONFIG_MSG* m
 	return true;
 }
 
-
+// the function find the argument in the config needed to be assigned and assign the variable value
 bool spAssignArgument(SPConfig config, char* variable_name, char* variable_value, SP_CONFIG_MSG* msg, int line,
 		const char* filename)
 {
@@ -407,6 +429,7 @@ bool spAssignArgument(SPConfig config, char* variable_name, char* variable_value
 	{
 		return setspLoggerFilename(config, variable_value, msg);
 	}
+	// if we got here means the there is no such field in the config structure
 	else
 	{
 		*msg = SP_CONFIG_INVALID_STRING;
@@ -414,7 +437,7 @@ bool spAssignArgument(SPConfig config, char* variable_name, char* variable_value
 		return false;
 	}
 }
-
+// cut the white spaces of the received string from the beginning and the end
 char* trimWhitespace(char *str)
 {
 	char *end;
@@ -443,7 +466,8 @@ char* trimWhitespace(char *str)
 
 	return str;
 }
-
+// given a string the function will check if he is valid
+//and clean the white spaces from the beginning and the end
 char* cleanAssignmentOperand(char* str, SP_CONFIG_MSG* msg, const char* filename, int line)
 {
 	char* result = NULL;
@@ -468,7 +492,8 @@ char* cleanAssignmentOperand(char* str, SP_CONFIG_MSG* msg, const char* filename
 	result = (char*)malloc((strlen(trimmedStr) + 1) * sizeof(char));
 	if (!result)
 	{
-		// TODO: handle
+		*msg = SP_CONFIG_ALLOC_FAIL;
+		return NULL;
 	}
 
 	strcpy(result, trimmedStr);
@@ -476,7 +501,7 @@ char* cleanAssignmentOperand(char* str, SP_CONFIG_MSG* msg, const char* filename
 	return result;
 }
 
-bool proccesAssignmentLine(SPConfig config, const char* line, const char* filename, int lineNumber, SP_CONFIG_MSG* configMsg)
+bool processAssignmentLine(SPConfig config, const char* line, const char* filename, int lineNumber, SP_CONFIG_MSG* configMsg)
 {
 	char* equalMarkIndex = NULL;
 	char* tmpVariableName = NULL;
@@ -486,12 +511,16 @@ bool proccesAssignmentLine(SPConfig config, const char* line, const char* filena
 	char* variableName = NULL;
 	char* variableValue = NULL;
 
+	// check for '=' mark if none exist we have an error
 	equalMarkIndex = strchr(line, EQUAL_MARK);
 	if (!equalMarkIndex)
 	{
-		// TODO: print error in line
+		// DONT KNOW IF INVALID STRING IS THE RIGHT CHOISE
+		*configMsg = SP_CONFIG_INVALID_STRING;
+		spRegularErrorPrinter(filename, lineNumber, 0, DUMMY);
+		return NULL;
 	}
-
+	//getting the length of the value and the variable
 	variableLen = (int)(equalMarkIndex - line);
 	valueLen = (int)(line + strlen(line) - equalMarkIndex);
 
@@ -503,27 +532,31 @@ bool proccesAssignmentLine(SPConfig config, const char* line, const char* filena
 	strncpy(tmpVariableValue, line + variableLen + 1, valueLen);
 	tmpVariableValue[valueLen - 1] = NULL_TERMINATE;
 
-	// if '=' not exist we need to check if its comment line,empty line or an error
+	// cleaning the variables from white spaces in the beginning and the end
 	variableName = cleanAssignmentOperand(tmpVariableName, configMsg, filename, lineNumber);
 	if (!variableName)
 	{
-		// TODO: handle
+		free(tmpVariableName);
+		free(tmpVariableValue);
 		return false;
 	}
 
 	variableValue = cleanAssignmentOperand(tmpVariableValue, configMsg, filename, lineNumber);
 	if (!variableValue)
 	{
-		// TODO: handle
+		free(tmpVariableName);
+		free(tmpVariableValue);
 		return false;
 	}
 
 	free(tmpVariableName);
 	free(tmpVariableValue);
-
+	// making the assignment
 	if (!spAssignArgument(config, variableName, variableValue,
 			configMsg, lineNumber, filename))
 	{
+		free(variableName);
+		free(variableValue);
 		return false;
 	}
 
@@ -541,7 +574,7 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 	char* tmpInput = NULL;
 	FILE *file;
 	char* newLinePointer = NULL;
-
+	// checking the file name
 	if (!filename)
 	{
 		*msg = SP_CONFIG_INVALID_ARGUMENT;
@@ -549,10 +582,11 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 		fflush(NULL);
 		return NULL;
 	}
-
+	// open the config file
 	file = fopen(filename, "r");
 	if (!file)
 	{
+		// check whether it is the deafaul file or user file
 		if (strcmp(filename,DEFAULT_CONFIG_FILE) == 0)
 		{
 			flushed_printf(ERROR_SPCBIR_NOT_OPEN);
@@ -567,7 +601,7 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 
 		return NULL;
 	}
-
+	// initiate the config file fill it with the default values
 	SPConfig config = spConfigInit(msg);
 	if (!config)
 	{
@@ -578,23 +612,25 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 	input = (char*)malloc((MAX_LINE_LENGTH + 1)* sizeof(char));
 	if (!input)
 	{
-		// TODO: handle
+		*msg = SP_CONFIG_ALLOC_FAIL;
+		fclose(file);
+		return NULL;
 	}
 
 	while (fgets(input, MAX_LINE_LENGTH + 1, file) != NULL)
 	{
 		tmpInput = input;
-
+		// replacing the newline sign with null terminator
 		if ((newLinePointer = strchr(tmpInput, '\n')) != NULL)
 		{
 		    *newLinePointer = NULL_TERMINATE;
 		}
-
+		// trim the white space if exist
 		tmpInput = trimWhitespace(tmpInput);
-
+		// if it was an comment line or an empty line, we continue else keep process
 		if ((*tmpInput != COMMENT_MARK) && (*tmpInput != NULL_TERMINATE))
 		{
-			if (!proccesAssignmentLine(config, tmpInput, filename, line_counter, msg))
+			if (!processAssignmentLine(config, tmpInput, filename, line_counter, msg))
 			{
 				spConfigDestroy(config);
 				free(input);
@@ -736,31 +772,7 @@ int spConfigGetPCADim(const SPConfig config, SP_CONFIG_MSG* msg)
 	return config->spPCADimension;
 }
 
-/**
- * Given an index 'index' the function stores in imagePath the full path of the
- * ith image.
- *
- * For example:
- * Given that the value of:
- *  spImagesDirectory = "./images/"
- *  spImagesPrefix = "img"
- *  spImagesSuffix = ".png"
- *  spNumOfImages = 17
- *  index = 10
- *
- * The functions stores "./images/img10.png" to the address given by imagePath.
- * Thus the address given by imagePath must contain enough space to
- * store the resulting string.
- *
- * @param imagePath - an address to store the result in, it must contain enough space.
- * @param config - the configuration structure
- * @param index - the index of the image.
- *
- * @return
- * - SP_CONFIG_INVALID_ARGUMENT - if imagePath == NULL or config == NULL
- * - SP_CONFIG_INDEX_OUT_OF_RANGE - if index >= spNumOfImages
- * - SP_CONFIG_SUCCESS - in case of success
- */
+// given an integer n the function return the number of digits in the number
 int spConfigHowManyDigits(int n)
 {
 	int count = 0;
@@ -778,17 +790,28 @@ int spConfigHowManyDigits(int n)
 
 	return count;
 }
+/**
+* Given an index 'index' the function stores in imagePath the full path of the
+* ith image
+*/
 SP_CONFIG_MSG spConfigGetImagePath(char* imagePath, const SPConfig config,
 		int index)
 {
 	return spConfigGetImageCombPath(imagePath, config, index, config->spImagesSuffix);
 }
+/*
+* Given an index 'index' the function stores in imageFeatsPath the full path of the
+* ith image with suffix of feats.
+*/
 SP_CONFIG_MSG spConfigGetImageFeatsPath(char* imageFeatsPath, const SPConfig config,
 		int index)
 {
 	return spConfigGetImageCombPath(imageFeatsPath, config, index, FEATS_SUFFIX);
 }
-
+/*
+ * Given an index 'index' the function stores in imagePath the full path of the
+ * ith image with suffix of .feats.
+ */
 SP_CONFIG_MSG spConfigGetImageCombPath(char* imagePath, const SPConfig config,
 		int index, char* suffix)
 {
@@ -806,8 +829,7 @@ SP_CONFIG_MSG spConfigGetImageCombPath(char* imagePath, const SPConfig config,
 		msg = SP_CONFIG_INDEX_OUT_OF_RANGE;
 		return msg;
 	}
-
-	// check numbers set up
+	// getting the index number as a string
 	intBuffer = (char*)malloc((index_len + 1) * sizeof(char));
 	if (!intBuffer)
 	{
@@ -820,7 +842,7 @@ SP_CONFIG_MSG spConfigGetImageCombPath(char* imagePath, const SPConfig config,
 	if (!sprintf(imagePath, "%s%s%s%s", config->spImagesDirectory, config->spImagesPrefix,
 						intBuffer, suffix))
 	{
-		// TODO: CHECK IF ITS THE RIGHT HANDLE
+
 		msg = SP_CONFIG_ALLOC_FAIL;
 		return msg;
 	}
@@ -905,6 +927,7 @@ void spConfigDestroy(SPConfig config)
 		config = NULL;
 	}
 }
+// check if all the default variables were initiated
 bool spIsDefaultInitiate(const char* filename, SP_CONFIG_MSG* msg,SPConfig config, int line)
 {
 	if (!config->spImagesDirectory)
@@ -937,7 +960,7 @@ bool spIsDefaultInitiate(const char* filename, SP_CONFIG_MSG* msg,SPConfig confi
 	}
 	return true;
 }
-
+// getter for num of images
 int spConfigGetNumOfSimilarImage (const SPConfig config, SP_CONFIG_MSG* msg)
 {
 	assert(msg != NULL);
@@ -949,7 +972,7 @@ int spConfigGetNumOfSimilarImage (const SPConfig config, SP_CONFIG_MSG* msg)
 		*msg = SP_CONFIG_SUCCESS;
 		return config->spNumOfSimilarImages;
 }
-
+// getter for spKDTreeSplitMethod
 SP_KDTREE_SPLIT_METHOD spConfigGetspKDTreeSplitMethod (const SPConfig config, SP_CONFIG_MSG* msg)
 {
 	assert(msg != NULL);
@@ -962,7 +985,7 @@ SP_KDTREE_SPLIT_METHOD spConfigGetspKDTreeSplitMethod (const SPConfig config, SP
 		*msg = SP_CONFIG_SUCCESS;
 		return config->spKDTreeSplitMethod;
 }
-
+// getter for spKNN
 int spConfigGetKNN (const SPConfig config, SP_CONFIG_MSG* msg)
 {
 	assert(msg != NULL);
@@ -975,6 +998,7 @@ int spConfigGetKNN (const SPConfig config, SP_CONFIG_MSG* msg)
 		return config->spKNN;
 
 }
+// getter for spLoggerLevel
 int spConfigLoggerLevel (const SPConfig config,SP_CONFIG_MSG* msg)
 {
 	assert(msg != NULL);
@@ -987,7 +1011,7 @@ int spConfigLoggerLevel (const SPConfig config,SP_CONFIG_MSG* msg)
 		return config->spLoggerLevel;
 
 }
-
+// getter for spLoggerFilename
 
 SP_CONFIG_MSG spConfigGetLoggerFilename(char* loggerFileName, const SPConfig config)
 {
@@ -1006,65 +1030,66 @@ SP_CONFIG_MSG spConfigGetLoggerFilename(char* loggerFileName, const SPConfig con
 
 	return SP_CONFIG_SUCCESS;
 }
-
-void spConfigPrintConfigMsgToLogger (SP_CONFIG_MSG msg)
+// print the massage stored in msg to the logger file
+void spConfigPrintConfigMsgToLogger (SP_CONFIG_MSG msg, const char* file, const char * func, int line)
 {
 	switch(msg)
 		{
 			case SP_CONFIG_MISSING_DIR:
 			{
-				spLoggerPrintError(SP_CONFIG_MSG_MISSING_DIR, __FILE__, __func__, __LINE__);
+				spLoggerPrintError(SP_CONFIG_MSG_MISSING_DIR, file, func, line);
 				break;
 			}
 			case SP_CONFIG_MISSING_PREFIX:
 			{
-				spLoggerPrintError(SP_CONFIG_MSG_MISSING_PREFIX, __FILE__, __func__, __LINE__);
+				spLoggerPrintError(SP_CONFIG_MSG_MISSING_PREFIX,  file, func, line);
 				break;
 			}
 			case SP_CONFIG_MISSING_SUFFIX:
 			{
-				spLoggerPrintError(SP_CONFIG_MSG_MISSING_SUFFIX, __FILE__, __func__, __LINE__);
+				spLoggerPrintError(SP_CONFIG_MSG_MISSING_SUFFIX, file, func, line);
 				break;
 			}
 			case SP_CONFIG_MISSING_NUM_IMAGES:
 			{
-				spLoggerPrintError(SP_CONFIG_MSG_MISSING_NUM_IMAGES, __FILE__, __func__, __LINE__);
+				spLoggerPrintError(SP_CONFIG_MSG_MISSING_NUM_IMAGES,  file, func, line);
 				break;
 			}
 			case SP_CONFIG_CANNOT_OPEN_FILE:
 			{
-				spLoggerPrintError(SP_CONFIG_MSG_CANNOT_OPEN_FILE, __FILE__, __func__, __LINE__);
+				spLoggerPrintError(SP_CONFIG_MSG_CANNOT_OPEN_FILE,  file, func, line);
 				break;
 			}
 			case SP_CONFIG_ALLOC_FAIL:
 			{
-				spLoggerPrintError(SP_CONFIG_MSG_ALLOC_FAIL, __FILE__, __func__, __LINE__);
+				spLoggerPrintError(SP_CONFIG_MSG_ALLOC_FAIL,  file, func, line);
 				break;
 			}
 			case SP_CONFIG_INVALID_INTEGER:
 			{
-				spLoggerPrintError(SP_CONFIG_MSG_INVALID_INTEGER, __FILE__, __func__, __LINE__);
+				spLoggerPrintError(SP_CONFIG_MSG_INVALID_INTEGER,  file, func, line);
 				break;
 			}
 			case SP_CONFIG_INVALID_STRING:
 			{
-				spLoggerPrintError(SP_CONFIG_MSG_INVALID_STRING, __FILE__, __func__, __LINE__);
+				spLoggerPrintError(SP_CONFIG_MSG_INVALID_STRING,  file, func, line);
 				break;
 			}
 			case SP_CONFIG_INVALID_ARGUMENT:
 			{
-				spLoggerPrintError(SP_CONFIG_MSG_INVALID_ARGUMENT, __FILE__, __func__, __LINE__);
+				spLoggerPrintError(SP_CONFIG_MSG_INVALID_ARGUMENT,  file, func, line);
 				break;
 			}
 			case SP_CONFIG_INDEX_OUT_OF_RANGE:
 			{
-				spLoggerPrintError(SP_CONFIG_MSG_INDEX_OUT_OF_RANGE, __FILE__, __func__, __LINE__);
+				spLoggerPrintError(SP_CONFIG_MSG_INDEX_OUT_OF_RANGE,   file, func, line);
 				break;
 			}
 			case SP_CONFIG_SUCCESS:
 				break;
 		}
 }
+// print the massage stored in msg to the stdout
 void spConfigPrintConfigMsgToStdout (SP_CONFIG_MSG msg)
 {
 	switch(msg)

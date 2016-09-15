@@ -80,7 +80,7 @@ bool spSerializeImagesFeatures(SPImage* imagesFeatures, SPConfig config)
 	numOfImages = spConfigGetNumOfImages(config, &configMsg);
 	if (configMsg != SP_CONFIG_SUCCESS)
 	{
-		spConfigPrintConfigMsgToLogger(configMsg);
+		spConfigPrintConfigMsgToLogger(configMsg,__FILE__,__func__, __LINE__);
 		free(imageFeatsPath);
 		imageFeatsPath = NULL;
 		return false;
@@ -91,7 +91,7 @@ bool spSerializeImagesFeatures(SPImage* imagesFeatures, SPConfig config)
 		configMsg = spConfigGetImageFeatsPath(imageFeatsPath, config, i);
 		if (configMsg != SP_CONFIG_SUCCESS)
 		{
-			spConfigPrintConfigMsgToLogger(configMsg);
+			spConfigPrintConfigMsgToLogger(configMsg,__FILE__,__func__, __LINE__);
 			free(imageFeatsPath);
 			imageFeatsPath = NULL;
 			return false;
@@ -110,7 +110,7 @@ bool spSerializeImagesFeatures(SPImage* imagesFeatures, SPConfig config)
 
 	return true;
 }
-// reading features from, file and assigning them to imagesFeature structure
+// reading features from file and assigning them to imagesFeature structure
 bool spDeserializeImagesFeatures(SPImage** imagesFeatures, SPConfig config)
 {
 	int i = 0;
@@ -127,7 +127,7 @@ bool spDeserializeImagesFeatures(SPImage** imagesFeatures, SPConfig config)
 	numOfImages = spConfigGetNumOfImages(config, &configMsg);
 	if (configMsg != SP_CONFIG_SUCCESS)
 	{
-		spConfigPrintConfigMsgToLogger(configMsg);
+		spConfigPrintConfigMsgToLogger(configMsg,__FILE__,__func__, __LINE__);
 		free(imageFeatsPath);
 		imageFeatsPath = NULL;
 		return false;
@@ -147,7 +147,7 @@ bool spDeserializeImagesFeatures(SPImage** imagesFeatures, SPConfig config)
 		 configMsg = spConfigGetImageFeatsPath(imageFeatsPath, config, i);
 		if (configMsg != SP_CONFIG_SUCCESS)
 		{
-			spConfigPrintConfigMsgToLogger(configMsg);
+			spConfigPrintConfigMsgToLogger(configMsg,__FILE__,__func__, __LINE__);
 			free(imageFeatsPath);
 			imageFeatsPath = NULL;
 			return false;
@@ -205,21 +205,21 @@ char** spGetSimilarImagesPathes(SPConfig config, SPImage queryImage, SPKDTreeNod
 	numOfImages = spConfigGetNumOfImages(config, &configMsg);
 	if (configMsg != SP_CONFIG_SUCCESS)
 	{
-		spConfigPrintConfigMsgToLogger(configMsg);
+		spConfigPrintConfigMsgToLogger(configMsg,__FILE__,__func__, __LINE__);
 		return false;
 	}
 
 	numOfSimilarImages = spConfigGetNumOfSimilarImage(config, &configMsg);
 	if (configMsg != SP_CONFIG_SUCCESS)
 	{
-		spConfigPrintConfigMsgToLogger(configMsg);
+		spConfigPrintConfigMsgToLogger(configMsg,__FILE__,__func__, __LINE__);
 		return false;
 	}
 
 	spKNN = spConfigGetKNN(config, &configMsg);
 	if (configMsg != SP_CONFIG_SUCCESS)
 	{
-		spConfigPrintConfigMsgToLogger(configMsg);
+		spConfigPrintConfigMsgToLogger(configMsg,__FILE__,__func__, __LINE__);
 		return false;
 	}
 
@@ -303,7 +303,7 @@ char** spGetSimilarImagesPathes(SPConfig config, SPImage queryImage, SPKDTreeNod
 			spDestroyResult(result, numOfSimilarImages);
 			free(occurencesArr);
 			occurencesArr = NULL;
-			spConfigPrintConfigMsgToLogger(configMsg);
+			spConfigPrintConfigMsgToLogger(configMsg,__FILE__,__func__, __LINE__);
 			return NULL;
 		}
 	}
@@ -366,6 +366,12 @@ void freeSimilarImagesPathes(char** SimilarImagesPathes,SPConfig config )
 	int i = 0;
 	int numOfSimilarImages = 0;
 	SP_CONFIG_MSG configMsg;
+
+	if (!SimilarImagesPathes)
+	{
+		return;
+	}
+
 	numOfSimilarImages = spConfigGetNumOfSimilarImage(config, &configMsg);
 	for (i = 0; i < numOfSimilarImages; ++i)
 	{
@@ -420,7 +426,7 @@ bool initLoggerFromConfig(SPConfig config)
 
 	if (configMsg != SP_CONFIG_SUCCESS)
 	{
-		spConfigPrintConfigMsgToLogger(configMsg);
+		spConfigPrintConfigMsgToLogger(configMsg,__FILE__,__func__, __LINE__);
 
 		return false;
 	}
@@ -428,7 +434,7 @@ bool initLoggerFromConfig(SPConfig config)
 	loggerLevel = spConfigLoggerLevel(config, &configMsg);
 	if (configMsg != SP_CONFIG_SUCCESS)
 	{
-		spConfigPrintConfigMsgToLogger(configMsg);
+		spConfigPrintConfigMsgToLogger(configMsg,__FILE__,__func__, __LINE__);
 
 		return false;
 	}

@@ -411,9 +411,12 @@ bool spAssignArgument(SPConfig config, char* variable_name, char* variable_value
  * The function will print the proper msg to the logger file
  *
  * @param msg - the msg that should be print to logger
+ * @param file - the file that should be print to logger
+ * @param func - the msg that should be print to logger
+ * @param line - the line that should be print to logger
  *
  */
-void spConfigPrintConfigMsgToLogger (SP_CONFIG_MSG msg);
+void spConfigPrintConfigMsgToLogger (SP_CONFIG_MSG msg, const char* file, const char * func, int line);
 /**
  * The function will print the proper msg to stdout
  *
