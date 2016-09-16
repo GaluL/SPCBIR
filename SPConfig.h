@@ -375,20 +375,20 @@ SP_CONFIG_MSG spConfigGetLoggerFilename(char* loggerFileName, const SPConfig con
 bool spIsDefaultInitiate(const char* filename, SP_CONFIG_MSG* msg,SPConfig config, int line);
 
 /**
- * The function will print regular errors to stdout
+ * The functions will print regular errors to stdout
  *
  *
  * @param filename - the name of the config file name -needed for error handling.
  * @param line - Int represent the number of lines the were read from config file
- * @param ErrorTypeNum - Int represent the number what type of error needed to be print
- * 						0 ->  If a line is invalid
- * 						1 ->  If any of the constraints on the system parameters did not meet
- * 						2 ->  If a parameter with no default value was not set
  * @param paramterName - String represent the parameter name if it needed to be printed
  *
  *
  */
-void spRegularErrorPrinter(const char* filename, int line,int ErrorTypeNum, char* paramterName);
+void spPrintInvalidLineError(const char* filename, int line);
+
+void spPrintConstraintNotMetError(const char* filename, int line);
+
+void spPrintParameterNotSetError(const char* filename, int line, char* parameterName);
 
 /**
  * The function will assign the value to the proper variable in the config structure

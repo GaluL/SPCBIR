@@ -82,32 +82,31 @@ SPConfig spConfigInit(SP_CONFIG_MSG* msg)
 	*msg = SP_CONFIG_SUCCESS;
 	return config;
 }
+
 /*
- * function that print regular errors
- * error type num = 0 ->  If a line is invalid
- * 					1 ->  If any of the constraints on the system parameters are not met
- * 					2 ->  If a parameter with no default value is not set
+ * functions that prints config errors
  */
-void spRegularErrorPrinter(const char* filename, int line,int ErrorTypeNum, char* paramterName)
+void spPrintInvalidLineError(const char* filename, int line)
 {
-	// An array the hold the key word for the error array
-	char * errorArray[] = {ERROR_INVALID_CONFIGURATION_LINE,ERROR_INVALID_VALUE,
-			 ERROR_PARAMTER,ERROR_IS_NOT_SET};
-
-	if (ErrorTypeNum != ERROR_ARRAY_TYPE_PARAMTER_NOT_SET)
-	{
-		printf("%s%s\n%s%d\n%s%s\n",ERROR_FILE, filename, ERROR_LINE, line, ERROR_MASSAGE,
-				 errorArray[ErrorTypeNum]);
-		fflush(NULL);
-	}
-	else
-	{
-		printf("%s%s\n%s%d\n%s%s%s%s\n", ERROR_FILE, filename, ERROR_LINE, line,
-				 ERROR_MASSAGE,errorArray[ErrorTypeNum],paramterName,errorArray[ErrorTypeNum+1]);
-		fflush(NULL);
-	}
-
+	printf("%s%s\n%s%d\n%s%s\n",ERROR_FILE, filename, ERROR_LINE, line, ERROR_MASSAGE,
+			ERROR_INVALID_CONFIGURATION_LINE);
+	fflush(NULL);
 }
+
+void spPrintConstraintNotMetError(const char* filename, int line)
+{
+	printf("%s%s\n%s%d\n%s%s\n", ERROR_FILE, filename, ERROR_LINE, line, ERROR_MASSAGE,
+			ERROR_INVALID_CONFIGURATION_LINE);
+	fflush(NULL);
+}
+
+void spPrintParameterNotSetError(const char* filename, int line, char* parameterName)
+{
+	printf("%s%s\n%s%d\n%s%s%s%s\n", ERROR_FILE, filename, ERROR_LINE, line,
+			 ERROR_MASSAGE, ERROR_PARAMTER, parameterName, ERROR_IS_NOT_SET);
+	fflush(NULL);
+}
+
 // setter for spImagesDirectory
 bool setspImagesDirectory (SPConfig config, char* variable_value, SP_CONFIG_MSG* msg)
 {
@@ -154,7 +153,7 @@ bool setspImagesSuffix (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg
 	else
 	{
 		*msg = SP_CONFIG_INVALID_STRING;
-		spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
+		spPrintConstraintNotMetError(filename, line);
 		return false;
 	}
 }
@@ -171,7 +170,7 @@ bool setspNumOfImages (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg,
 	else
 	{
 		*msg = SP_CONFIG_INVALID_INTEGER;
-		spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
+		spPrintConstraintNotMetError(filename, line);
 		return false;
 	}
 }
@@ -189,7 +188,7 @@ bool setspPCADimension (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg
 	else
 	{
 		*msg = SP_CONFIG_INVALID_INTEGER;
-		spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
+		spPrintConstraintNotMetError(filename, line);
 		return false;
 	}
 }
@@ -225,7 +224,7 @@ bool setspNumOfFeatures (SPConfig config, char* variable_value,SP_CONFIG_MSG* ms
 	else
 	{
 		*msg = SP_CONFIG_INVALID_INTEGER;
-		spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
+		spPrintConstraintNotMetError(filename, line);
 		return false;
 	}
 }
@@ -249,7 +248,7 @@ bool setspExtractionMode (SPConfig config, char* variable_value,SP_CONFIG_MSG* m
 	else
 	{
 		*msg = SP_CONFIG_INVALID_STRING;
-		spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
+		spPrintConstraintNotMetError(filename, line);
 		return false;
 	}
 }
@@ -266,7 +265,7 @@ bool setspNumOfSimilarImages (SPConfig config, char* variable_value,SP_CONFIG_MS
 	else
 	{
 		*msg = SP_CONFIG_INVALID_INTEGER;
-		spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
+		spPrintConstraintNotMetError(filename, line);
 		return false;
 	}
 }
@@ -290,7 +289,7 @@ bool setspKDTreeSplitMethod (SPConfig config, char* variable_value,SP_CONFIG_MSG
 	else
 	{
 		*msg = SP_CONFIG_INVALID_STRING;
-		spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
+		spPrintConstraintNotMetError(filename, line);
 		return false;
 	}
 	return true;
@@ -308,7 +307,7 @@ bool setspKNN (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, int lin
 	else
 	{
 		*msg = SP_CONFIG_INVALID_INTEGER;
-		spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
+		spPrintConstraintNotMetError(filename, line);
 		return false;
 	}
 }
@@ -328,7 +327,7 @@ bool setspMinimalGUI (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, 
 	else
 	{
 		*msg = SP_CONFIG_INVALID_STRING;
-		spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
+		spPrintConstraintNotMetError(filename, line);
 		return false;
 	}
 	return true;
@@ -346,7 +345,7 @@ bool setspLoggerLevel (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg,
 	else
 	{
 		*msg = SP_CONFIG_INVALID_INTEGER;
-		spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET,DUMMY);
+		spPrintConstraintNotMetError(filename, line);
 		return false;
 	}
 }
@@ -433,7 +432,7 @@ bool spAssignArgument(SPConfig config, char* variable_name, char* variable_value
 	else
 	{
 		*msg = SP_CONFIG_INVALID_STRING;
-		spRegularErrorPrinter(filename,line,ERROR_ARRAY_TYPE_INVALID_CONFIGURATION_LINE,DUMMY);
+		spPrintInvalidLineError(filename, line);
 		return false;
 	}
 }
@@ -484,7 +483,7 @@ char* cleanAssignmentOperand(char* str, SP_CONFIG_MSG* msg, const char* filename
 		if( (trimmedStr[i] == COMMENT_MARK) || isspace(trimmedStr[i]))
 		{
 			*msg = SP_CONFIG_INVALID_STRING;
-			spRegularErrorPrinter(filename, line, 0, DUMMY);
+			spPrintInvalidLineError(filename, line);
 			return NULL;
 		}
 	}
@@ -517,7 +516,7 @@ bool processAssignmentLine(SPConfig config, const char* line, const char* filena
 	{
 		// DONT KNOW IF INVALID STRING IS THE RIGHT CHOISE
 		*configMsg = SP_CONFIG_INVALID_STRING;
-		spRegularErrorPrinter(filename, lineNumber, 0, DUMMY);
+		spPrintInvalidLineError(filename, lineNumber);
 		return NULL;
 	}
 	//getting the length of the value and the variable
@@ -723,6 +722,7 @@ int spConfigGetNumOfImages(const SPConfig config, SP_CONFIG_MSG* msg)
 			return -1;
 		}
 		*msg = SP_CONFIG_SUCCESS;
+
 		return config->spNumOfImages;
 }
 /*
@@ -842,7 +842,6 @@ SP_CONFIG_MSG spConfigGetImageCombPath(char* imagePath, const SPConfig config,
 	if (!sprintf(imagePath, "%s%s%s%s", config->spImagesDirectory, config->spImagesPrefix,
 						intBuffer, suffix))
 	{
-
 		msg = SP_CONFIG_ALLOC_FAIL;
 		return msg;
 	}
@@ -927,37 +926,42 @@ void spConfigDestroy(SPConfig config)
 		config = NULL;
 	}
 }
+
 // check if all the default variables were initiated
-bool spIsDefaultInitiate(const char* filename, SP_CONFIG_MSG* msg,SPConfig config, int line)
+bool spIsDefaultInitiate(const char* filename, SP_CONFIG_MSG* msg, SPConfig config, int line)
 {
 	if (!config->spImagesDirectory)
 	{
 		*msg = SP_CONFIG_MISSING_DIR;
-		spRegularErrorPrinter(filename,line,2,SP_IMAGES_DIRECTORY);
+		spPrintParameterNotSetError(filename, line, SP_IMAGES_DIRECTORY);
 		spConfigDestroy(config);
 		return false;
 	}
+
 	if (!config->spImagesPrefix)
 	{
 		*msg = SP_CONFIG_MISSING_PREFIX;
-		spRegularErrorPrinter(filename,line,2,SP_IMAGES_PREFIX);
+		spPrintParameterNotSetError(filename, line, SP_IMAGES_PREFIX);
 		spConfigDestroy(config);
 		return false;
 	}
+
 	if (!config->spImagesSuffix)
 	{
 		*msg = SP_CONFIG_MISSING_SUFFIX;
-		spRegularErrorPrinter(filename,line,2,SP_IMAGES_SUFFIX);
+		spPrintParameterNotSetError(filename, line, SP_IMAGES_SUFFIX);
 		spConfigDestroy(config);
 		return false;
 	}
+
 	if (config->spNumOfImages < 1)
 	{
 		*msg = SP_CONFIG_MISSING_NUM_IMAGES;
-		spRegularErrorPrinter(filename,line,2,SP_NUM_OF_IMAGES);
+		spPrintParameterNotSetError(filename, line, SP_NUM_OF_IMAGES);
 		spConfigDestroy(config);
 		return false;
 	}
+
 	return true;
 }
 // getter for num of images

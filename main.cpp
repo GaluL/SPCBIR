@@ -10,11 +10,11 @@
 #include "SPImageProc.h"
 extern "C"
 {
+#include "SPConfig.h"
 #include "SPPoint.h"
 #include "SPKDArray.h"
 #include "SPImage.h"
 #include "SPMainAux.h"
-#include "SPConfig.h"
 #include "SPKDTreeNode.h"
 #include "SPLogger.h"
 }
@@ -185,12 +185,11 @@ int main(int argc, char** argv)
 	}
 	else
 	{
-		// config failed to be read - print the error to stdout
-		spConfigPrintConfigMsgToStdout(configMsg);
 		free(configFileName);
 		configFileName = NULL;
 		return 0;
 	}
+
 	// asking the user for an image
 	flushed_printf(QUERY_IMAGE_PROMPT);
 	queryPath = flushed_gets();

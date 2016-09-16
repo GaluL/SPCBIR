@@ -17,7 +17,7 @@
 #define SP_FAILED_WRITE_TO_FILE "failed write to file"
 #define SP_FAILED_READ_FROM_FILE "failed read from file"
 #define SP_SPRINTF_FAIL_READ "sprintf failed  to read or write "
-#define SP_ERROR_OPEN_LOGGER "Unsuccessfull open the logger"
+#define SP_ERROR_OPEN_LOGGER "Failed creating logger"
 
 #define SP_INVALID_NEG_VALUE -1
 #define NEW_LINE "\n"
