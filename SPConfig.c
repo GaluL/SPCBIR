@@ -96,7 +96,7 @@ void spPrintInvalidLineError(const char* filename, int line)
 void spPrintConstraintNotMetError(const char* filename, int line)
 {
 	printf("%s%s\n%s%d\n%s%s\n", ERROR_FILE, filename, ERROR_LINE, line, ERROR_MASSAGE,
-			ERROR_INVALID_CONFIGURATION_LINE);
+			ERROR_INVALID_VALUE);
 	fflush(NULL);
 }
 
@@ -110,6 +110,12 @@ void spPrintParameterNotSetError(const char* filename, int line, char* parameter
 // setter for spImagesDirectory
 bool setspImagesDirectory (SPConfig config, char* variable_value, SP_CONFIG_MSG* msg)
 {
+	if (config->spImagesDirectory)
+	{
+		free(config->spImagesDirectory);
+		config->spImagesDirectory = NULL;
+	}
+
 	config->spImagesDirectory = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
 	if (!config->spImagesDirectory)
 	{
@@ -122,6 +128,12 @@ bool setspImagesDirectory (SPConfig config, char* variable_value, SP_CONFIG_MSG*
 // setter for spImagesPrefix
 bool setspImagesPrefix (SPConfig config, char* variable_value, SP_CONFIG_MSG* msg)
 {
+	if (config->spImagesPrefix)
+	{
+		free(config->spImagesPrefix);
+		config->spImagesPrefix = NULL;
+	}
+
 	config->spImagesPrefix = (char*)malloc((strlen(variable_value) +1) * sizeof(char));
 	if (!config->spImagesPrefix)
 	{
@@ -136,6 +148,12 @@ bool setspImagesPrefix (SPConfig config, char* variable_value, SP_CONFIG_MSG* ms
 bool setspImagesSuffix (SPConfig config, char* variable_value,SP_CONFIG_MSG* msg, int line,
 		const char* filename)
 {
+	if (config->spImagesSuffix)
+	{
+		free(config->spImagesSuffix);
+		config->spImagesSuffix = NULL;
+	}
+
 	// check we got one of the right suffix
 	if ((strcmp(variable_value,SUFFIX_JPEG)== 0) || (strcmp(variable_value,SUFFIX_PNG)== 0)||
 			(strcmp(variable_value,SUFFIX_BMP)== 0) || (strcmp(variable_value,SUFFIX_GIF)== 0))
@@ -467,7 +485,8 @@ char* trimWhitespace(char *str)
 }
 // given a string the function will check if he is valid
 //and clean the white spaces from the beginning and the end
-char* cleanAssignmentOperand(char* str, SP_CONFIG_MSG* msg, const char* filename, int line)
+char* cleanAssignmentOperand(char* str, SP_CONFIG_MSG* msg, const char* filename, int line,
+		bool isParameterValue)
 {
 	char* result = NULL;
 	int i = 0;
@@ -483,7 +502,16 @@ char* cleanAssignmentOperand(char* str, SP_CONFIG_MSG* msg, const char* filename
 		if( (trimmedStr[i] == COMMENT_MARK) || isspace(trimmedStr[i]))
 		{
 			*msg = SP_CONFIG_INVALID_STRING;
-			spPrintInvalidLineError(filename, line);
+
+			if (!isParameterValue || trimmedStr[i] == COMMENT_MARK)
+			{
+				spPrintInvalidLineError(filename, line);
+			}
+			else
+			{
+				spPrintConstraintNotMetError(filename, line);
+			}
+
 			return NULL;
 		}
 	}
@@ -527,22 +555,35 @@ bool processAssignmentLine(SPConfig config, const char* line, const char* filena
 	tmpVariableValue = (char*)malloc((valueLen + 1) * sizeof(char));
 
 	strncpy(tmpVariableName, line, variableLen);
-	tmpVariableName[variableLen - 1] = NULL_TERMINATE;
+	tmpVariableName[variableLen] = NULL_TERMINATE;
 	strncpy(tmpVariableValue, line + variableLen + 1, valueLen);
-	tmpVariableValue[valueLen - 1] = NULL_TERMINATE;
+	tmpVariableValue[valueLen] = NULL_TERMINATE;
 
 	// cleaning the variables from white spaces in the beginning and the end
-	variableName = cleanAssignmentOperand(tmpVariableName, configMsg, filename, lineNumber);
-	if (!variableName)
+	variableName = cleanAssignmentOperand(tmpVariableName, configMsg, filename, lineNumber, false);
+	if (!variableName || strlen(variableName) == 0)
 	{
+		// Checking if variable name is empty
+		if (variableName)
+		{
+			spPrintInvalidLineError(filename, lineNumber);
+		}
+
 		free(tmpVariableName);
 		free(tmpVariableValue);
 		return false;
 	}
 
-	variableValue = cleanAssignmentOperand(tmpVariableValue, configMsg, filename, lineNumber);
-	if (!variableValue)
+	variableValue = cleanAssignmentOperand(tmpVariableValue, configMsg, filename, lineNumber, true);
+	if (!variableValue || strlen(variableValue) == 0)
 	{
+		// Checking if value is empty
+		if (variableValue)
+		{
+			spPrintInvalidLineError(filename, lineNumber);
+		}
+
+		free(variableName);
 		free(tmpVariableName);
 		free(tmpVariableValue);
 		return false;
@@ -567,8 +608,7 @@ bool processAssignmentLine(SPConfig config, const char* line, const char* filena
 
 SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 {
-	int line_counter = 0;
-	bool isDefuatInit = true;
+	int line_counter = 1;
 	char* input = NULL;
 	char* tmpInput = NULL;
 	FILE *file;
@@ -577,7 +617,7 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 	if (!filename)
 	{
 		*msg = SP_CONFIG_INVALID_ARGUMENT;
-		printf("%s %s %s/n", ERROR_THE_CONFIGURATION_FILE, filename, ERROR_COULD_NOT_OPEN);
+		printf("%s %s %s\n", ERROR_THE_CONFIGURATION_FILE, filename, ERROR_COULD_NOT_OPEN);
 		fflush(NULL);
 		return NULL;
 	}
@@ -592,7 +632,7 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 		}
 		else
 		{
-			printf("%s %s %s", ERROR_THE_CONFIGURATION, filename, ERROR_COULD_NOT_OPEN);
+			printf("%s %s %s\n", ERROR_THE_CONFIGURATION_FILE, filename, ERROR_COULD_NOT_OPEN);
 			fflush(NULL);
 		}
 
@@ -643,13 +683,23 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 
 	free(input);
 	fclose(file);
-	// check all must initiate variables were initiate
-	isDefuatInit = spIsDefaultInitiate(filename, msg, config, line_counter);
-	if (!isDefuatInit)
+	// check all must initiate variables were initiate - if not initiated printing error with line
+	// number of line in file which is the line counter "decreased" to be previous line number
+	if (!spNecessaryVarsInitiated(filename, msg, config, line_counter - 1))
 	{
 		spConfigDestroy(config);
 		return NULL;
 	}
+
+	// Check that number of similar images resquested isn't greater the total
+	// number of images
+	if(config->spNumOfSimilarImages > config->spNumOfImages)
+	{
+		flushed_printf(ERROR_SIMILAR_GREATER_THAN_IMAGES);
+		spConfigDestroy(config);
+		return NULL;
+	}
+
 	*msg = SP_CONFIG_SUCCESS;
 
 	return config;
@@ -928,13 +978,12 @@ void spConfigDestroy(SPConfig config)
 }
 
 // check if all the default variables were initiated
-bool spIsDefaultInitiate(const char* filename, SP_CONFIG_MSG* msg, SPConfig config, int line)
+bool spNecessaryVarsInitiated(const char* filename, SP_CONFIG_MSG* msg, SPConfig config, int line)
 {
 	if (!config->spImagesDirectory)
 	{
 		*msg = SP_CONFIG_MISSING_DIR;
 		spPrintParameterNotSetError(filename, line, SP_IMAGES_DIRECTORY);
-		spConfigDestroy(config);
 		return false;
 	}
 
@@ -942,7 +991,6 @@ bool spIsDefaultInitiate(const char* filename, SP_CONFIG_MSG* msg, SPConfig conf
 	{
 		*msg = SP_CONFIG_MISSING_PREFIX;
 		spPrintParameterNotSetError(filename, line, SP_IMAGES_PREFIX);
-		spConfigDestroy(config);
 		return false;
 	}
 
@@ -950,7 +998,6 @@ bool spIsDefaultInitiate(const char* filename, SP_CONFIG_MSG* msg, SPConfig conf
 	{
 		*msg = SP_CONFIG_MISSING_SUFFIX;
 		spPrintParameterNotSetError(filename, line, SP_IMAGES_SUFFIX);
-		spConfigDestroy(config);
 		return false;
 	}
 
@@ -958,7 +1005,6 @@ bool spIsDefaultInitiate(const char* filename, SP_CONFIG_MSG* msg, SPConfig conf
 	{
 		*msg = SP_CONFIG_MISSING_NUM_IMAGES;
 		spPrintParameterNotSetError(filename, line, SP_NUM_OF_IMAGES);
-		spConfigDestroy(config);
 		return false;
 	}
 

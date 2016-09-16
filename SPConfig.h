@@ -48,17 +48,16 @@
 #define ERROR_INVALID_VALUE "Invalid value - constraint not met"
 #define ERROR_PARAMTER "Parameter "
 #define ERROR_IS_NOT_SET " is not set"
+#define ERROR_SIMILAR_GREATER_THAN_IMAGES "Number of similar images can not be greater than num of images provided\n"
 #define ERROR_FILE "File: "
 #define ERROR_LINE "Line: "
 #define ERROR_MASSAGE "Massage: "
-#define ERROR_THE_CONFIGURATION_FILE "The configuration file "
-#define ERROR_COULD_NOT_OPEN " couldn’t be open"
-#define DUMMY "temp"
+#define ERROR_THE_CONFIGURATION_FILE "The configuration file"
+#define ERROR_COULD_NOT_OPEN "couldn't be open"
 #define SUFFIX_JPEG ".jpg"
 #define SUFFIX_PNG ".png"
 #define SUFFIX_BMP ".bmp"
 #define SUFFIX_GIF ".gif"
-#define filenameofek "est.txt"
 #define FEATS_SUFFIX ".feats"
 #define MODE_TRUE "true"
 #define MODE_FALSE "false"
@@ -372,7 +371,7 @@ SP_CONFIG_MSG spConfigGetLoggerFilename(char* loggerFileName, const SPConfig con
  * 											   -> the program will end.
  *
  */
-bool spIsDefaultInitiate(const char* filename, SP_CONFIG_MSG* msg,SPConfig config, int line);
+bool spNecessaryVarsInitiated(const char* filename, SP_CONFIG_MSG* msg,SPConfig config, int line);
 
 /**
  * The functions will print regular errors to stdout

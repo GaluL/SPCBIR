@@ -35,31 +35,32 @@ void freeImagesFeatures(SPImage* imagesFeatures, int numOfImages)
 // retrieve the file name  argument fro, the argv.
 char* spGetConfigFileName(int argc, char** argv)
 {
-	int i = 0;
 	char* configFilePath = NULL;
 
 	configFilePath = (char*)malloc((MAX_FILE_PATH_LEN + 1) * sizeof(char));
 	if (!configFilePath)
 	{
+		flushed_printf(SP_ALLOCATION_FAILURE);
 		return NULL;
 	}
 
-	// getting the argument from argv
-	for (i = 0; i < argc; ++i)
+	// No config file entered, using the default one
+	if (argc == 1)
 	{
-		if ((strcmp(argv[i], CONFIG_ARGUMENT_FLAG) == 0) && (i + 1 < argc))
-		{
-			strcpy(configFilePath, argv[i + 1]);
-
-			return configFilePath;
-		}
+		strcpy(configFilePath, DEFAULT_CONFIG_FILE);
 	}
+	else if (argc == 3 && strcmp(argv[1], CONFIG_ARGUMENT_FLAG) == 0)
+	{
+		strcpy(configFilePath, argv[2]);
+	}
+	else
+	{
+		printf("%s%s\n", ERROR_INVALID_COMAND_LINE, DEFAULT_CONFIG_FILE);
+		fflush(NULL);
 
-	// TODO CHECK IF IT MENT TO BT THE REAL CONFIG FILE NAME need space -c <> ?
-	printf("%s%s\n", ERROR_INVALID_COMAND_LINE, DEFAULT_CONFIG_FILE);
-	fflush(NULL);
-
-	strcpy(configFilePath, DEFAULT_CONFIG_FILE);
+		free(configFilePath);
+		configFilePath = NULL;
+	}
 
 	return configFilePath;
 }
@@ -157,10 +158,11 @@ bool spDeserializeImagesFeatures(SPImage** imagesFeatures, SPConfig config)
 		 if (!(*imagesFeatures)[i])
 		 {
 			// if a problem occurred freeing all allocated memory
-			freeImagesFeatures((*imagesFeatures),numOfImages);
+			freeImagesFeatures((*imagesFeatures), i);
+			*imagesFeatures = NULL;
 			free(imageFeatsPath);
 			imageFeatsPath = NULL;
-			spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
+
 			return false;
 		 }
 	}

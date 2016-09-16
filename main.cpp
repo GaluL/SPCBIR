@@ -28,6 +28,7 @@ SPImage extractImageFeatures(sp::ImageProc* imgProc, const char* imagePath, int 
 	features = imgProc->getImageFeatures(imagePath, index, &featuresExtracted);
 	if (!features)
 	{
+		spLoggerPrintError(ERROR_FEATURES_EXTRACT_FAILURE, __FILE__, __func__, __LINE__);
 		return NULL;
 	}
 
@@ -44,10 +45,12 @@ SPImage* extractImagesFeatures(const SPConfig config, sp::ImageProc* imgProc, in
 		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
 		return NULL;
 	}
-	// alocate memory for the images features data base
+	// allocate memory for the images features data base
 	imagesFeatures = (SPImage*)malloc(numOfImages * sizeof(SPImage));
 	if (!imagesFeatures)
 	{
+		free(imagePath);
+		imagePath = NULL;
 		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
 		return NULL;
 	}
@@ -56,10 +59,10 @@ SPImage* extractImagesFeatures(const SPConfig config, sp::ImageProc* imgProc, in
 	{
 		spConfigGetImagePath(imagePath, config, i);
 		imagesFeatures[i] = extractImageFeatures(imgProc, imagePath, i);
-		if (!imagesFeatures)
+		if (!imagesFeatures[i])
 		{
-			spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
-			freeImagesFeatures(imagesFeatures,numOfImages);
+			free(imagePath);
+			freeImagesFeatures(imagesFeatures, i);
 			return NULL;
 		}
 	}
@@ -98,12 +101,12 @@ int main(int argc, char** argv)
 	// if nothing was entered default will be chosen.
 	char* configFileName = spGetConfigFileName(argc, argv);
 
-	// allocate memory for the config file name
+	// Checking if config file name "digging" succeeded
 	if (!configFileName)
 	{
-		flushed_printf_newline(SP_ALLOCATION_FAILURE);
 		return 0;
 	}
+
 	// creating the config
 	config = spConfigCreate(configFileName, &configMsg);
 	if (config)
@@ -117,7 +120,21 @@ int main(int argc, char** argv)
 			return 0;
 		}
 
-		imgProc = new sp::ImageProc(config);
+		// Since c'tor of ImageProc throwing exceptions for failures like missing PCA file (etc.)
+		// The only way to deal with those failures is handling by c++ try & catch
+		try
+		{
+			imgProc = new sp::ImageProc(config);
+		}
+		catch(const std::exception& e)
+		{
+			spConfigDestroy(config);
+			free(configFileName);
+			configFileName = NULL;
+
+			return 0;
+		}
+
 		// get the num of images
 		numOfImages = spConfigGetNumOfImages(config, &configMsg);
 		if (configMsg != SP_CONFIG_SUCCESS)
@@ -161,7 +178,7 @@ int main(int argc, char** argv)
 		}
 		else
 		{
-			//deSerialize the ImagesFeatures - assugning them to imagesfaeture datebase
+			//deSerialize the ImagesFeatures - assigning them to images feature database
 			if (!spDeserializeImagesFeatures(&imagesFeatures, config))
 			{
 				destroyMainVariables(configFileName, config, imgProc, imagesFeatures, queryPath,
