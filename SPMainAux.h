@@ -8,10 +8,10 @@
 #define SPMAINAUX_H_
 
 #include "SPImage.h"
-#include "SPConfig.h"
 #include "SPKDTreeNode.h"
 #include "SPCommonDefs.h"
 #include "SPLogger.h"
+#include "SPConfig.h"
 
 #define MAX_FILE_PATH_LEN 1024
 #define ERROR_INVALID_COMAND_LINE "Invalid command line : use -c "

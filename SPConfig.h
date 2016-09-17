@@ -18,10 +18,6 @@
 #define LOGGER_LEVEL_DEFULT 3
 #define SP_PCA_DIMENSION_CONSTRAINT_LOW 9
 #define SP_PCA_DIMENSION_CONSTRAINT_HIGH 29
-#define NUM_OF_ERROR_IN_ARRAY 4
-#define ERROR_ARRAY_TYPE_INVALID_CONFIGURATION_LINE 0
-#define ERROR_ARRAY_TYPE_CONSTEINT_NOT_MET 1
-#define ERROR_ARRAY_TYPE_PARAMTER_NOT_SET 2
 #define LOGGER_LEVEL_MAX 5
 #define LOGGER_LEVEL_MIN 0
 
@@ -70,8 +66,8 @@
 #define SP_CONFIG_MSG_MISSING_NUM_IMAGES "Num of images has not initiated"
 #define SP_CONFIG_MSG_CANNOT_OPEN_FILE "can't open file"
 #define SP_CONFIG_MSG_ALLOC_FAIL "can't allocate memory"
-#define SP_CONFIG_MSG_INVALID_INTEGER "invalid Integer had been assigned"
-#define SP_CONFIG_MSG_INVALID_STRING "invalid String had been assigned"
+#define SP_CONFIG_MSG_INVALID_INTEGER "invalid Integer has been assigned"
+#define SP_CONFIG_MSG_INVALID_STRING "invalid String has been assigned"
 #define SP_CONFIG_MSG_INVALID_ARGUMENT "invalid Argument had been assigned"
 #define SP_CONFIG_MSG_INDEX_OUT_OF_RANGE "invalid index is out of range"
 /**
@@ -280,7 +276,7 @@ SP_CONFIG_MSG spConfigGetPCAPath(char* pcaPath, const SPConfig config);
 
 /**
  * Frees all memory resources associate with config. 
- * If config == NULL nothig is done.
+ * If config == NULL nothing is done.
  */
 void spConfigDestroy(SPConfig config);
 
@@ -290,6 +286,7 @@ void spConfigDestroy(SPConfig config);
  * @param config - the configuration structure
  * @assert msg != NULL
  * @param msg - pointer in which the msg returned by the function is stored
+ *
  * @return integer represent Num Of Similar Image
  * @return -1 in case of invalid argument
  *

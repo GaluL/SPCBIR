@@ -692,7 +692,7 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 		return NULL;
 	}
 
-	// Check that number of similar images resquested isn't greater the total
+	// Check that number of similar images requested isn't greater the total
 	// number of images
 	if(config->spNumOfSimilarImages > config->spNumOfImages)
 	{
@@ -942,7 +942,7 @@ SP_CONFIG_MSG spConfigGetPCAPath(char* pcaPath, const SPConfig config)
 
 /**
  * Frees all memory resources associate with config.
- * If config == NULL nothig is done.
+ * If config == NULL nothing is done.
  */
 void spConfigDestroy(SPConfig config)
 {
@@ -1011,7 +1011,7 @@ bool spNecessaryVarsInitiated(const char* filename, SP_CONFIG_MSG* msg, SPConfig
 
 	return true;
 }
-// getter for num of images
+// getter for number of images
 int spConfigGetNumOfSimilarImage (const SPConfig config, SP_CONFIG_MSG* msg)
 {
 	assert(msg != NULL);
