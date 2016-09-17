@@ -111,6 +111,7 @@ int main(int argc, char** argv)
 	config = spConfigCreate(configFileName, &configMsg);
 	if (config)
 	{
+		spLoggerPrintInfo(DEBUG_CONFIG_LOAD);
 		if (!initLoggerFromConfig(config))
 		{
 			flushed_printf_newline(SP_ERROR_OPEN_LOGGER);
@@ -135,6 +136,8 @@ int main(int argc, char** argv)
 			return 0;
 		}
 
+		spLoggerPrintInfo(DEBUG_IMGPROC_LOAD);
+
 		// get the number of images
 		numOfImages = spConfigGetNumOfImages(config, &configMsg);
 		if (configMsg != SP_CONFIG_SUCCESS)
@@ -158,6 +161,8 @@ int main(int argc, char** argv)
 		// if extraction needed:
 		if (extractMode)
 		{
+			spLoggerPrintInfo(DEBUG_EXTRACT_MODE);
+
 			// creating the images features data base
 			imagesFeatures = extractImagesFeatures(config, imgProc, numOfImages);
 			if (!imagesFeatures)
@@ -167,6 +172,8 @@ int main(int argc, char** argv)
 
 				return 0;
 			}
+			spLoggerPrintInfo(DEBUG_EXTRACT_RESULT);
+
 			// Serialize the ImagesFeatures to the file given in the config
 			if (!spSerializeImagesFeatures(imagesFeatures, config))
 			{
@@ -175,9 +182,11 @@ int main(int argc, char** argv)
 
 				return 0;
 			}
+			spLoggerPrintInfo(DEBUG_FEATS_FILES);
 		}
 		else
 		{
+			spLoggerPrintInfo(DEBUG_NON_EXTRACTION_MODE);
 			//deSerialize the ImagesFeatures - assigning them to images feature database
 			if (!spDeserializeImagesFeatures(&imagesFeatures, config))
 			{
@@ -186,6 +195,8 @@ int main(int argc, char** argv)
 
 				return 0;
 			}
+
+			spLoggerPrintInfo(DEBUG_EXTRACT_FROM_FEATS_RES);
 		}
 		//create kdTree based on array of imagesFeatures
 		featuresKDTree = spCreateKDTreeFromImages(imagesFeatures, config);
@@ -196,6 +207,8 @@ int main(int argc, char** argv)
 
 			return 0;
 		}
+
+		spLoggerPrintInfo(DEBUG_TREE_LOAD);
 
 		freeImagesFeatures(imagesFeatures, numOfImages);
 		imagesFeatures = NULL;
@@ -230,6 +243,7 @@ int main(int argc, char** argv)
 		query = extractImageFeatures(imgProc, queryPath, 0);
 		if (query)
 		{
+			spLoggerPrintDebug(DEBUG_QUERY_IMAGE_LOAD, __FILE__, __func__, __LINE__);
 			// find the most similar images paths from the database received before
 			SimilarImagesPathes = spGetSimilarImagesPathes(config, query, featuresKDTree);
 			if (!SimilarImagesPathes)
@@ -239,6 +253,9 @@ int main(int argc, char** argv)
 
 				return 0;
 			}
+
+			spLoggerPrintDebug(DEBUG_SIMILIAR_LOADED, __FILE__, __func__, __LINE__);
+
 			// check minimal GUI mode for presenting the results
 			minimalGUI = spConfigMinimalGui(config,&configMsg);
 			if (configMsg != SP_CONFIG_SUCCESS)

@@ -443,7 +443,7 @@ bool initLoggerFromConfig(SPConfig config)
 
 	// Passing null if logger output is stdout (to make logger write to stdout)
 	// and logger filename otherwise
-	if (spLoggerCreate((isStdout ? NULL : loggerFileName), loggerLevel) != SP_LOGGER_SUCCESS)
+	if (spLoggerCreate((isStdout ? NULL : loggerFileName), loggerLevel - 1) != SP_LOGGER_SUCCESS)
 	{
 		free(loggerFileName);
 		loggerFileName = NULL;
