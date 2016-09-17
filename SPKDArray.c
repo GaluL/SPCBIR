@@ -12,7 +12,7 @@
 #include "SPLogger.h"
 #include "SPCommonDefs.h"
 
-#define MAP_NOT_EXIST -1
+
 
 struct sp_kdarray_t {
 	// The number of features in the array
@@ -32,7 +32,7 @@ struct sp_kdsplittedarray_t {
 };
 
 // Holder for specific axis coord and the point index in point array - used for sorting
-// matrix rows and keeping the orignial indexes
+// matrix rows and keeping the original indexes
 typedef struct sp_indexandcoord_t {
 	int index;
 	double coord;
@@ -54,7 +54,7 @@ bool sortPointIndexesByDim(SPKDArray kdArr , int axis)
 	int i = 0;
 	SPIndexAndCoord* dimCoords = (SPIndexAndCoord*)malloc(kdArr->size * sizeof(SPIndexAndCoord));
 
-	// Check if alloaction succeeded - if not print log and return false to indicate failure
+	// Check if allocation succeeded - if not print log and return false to indicate failure
 	if (!dimCoords)
 	{
 		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
@@ -118,7 +118,7 @@ SPKDArray spKDArrayInit(SPPoint* arr, int size)
 		return NULL;
 	}
 
-	// TODO: check if change to spPCADim is needed
+
 	if (size > 0)
 	{
 		pointsDim = spPointGetDimension(arr[0]);
@@ -175,7 +175,8 @@ SPKDArray spKDArrayInit(SPPoint* arr, int size)
 
 	return kdArray;
 }
-
+// copy the sorted indexes after a split occurred to each of the split arrays
+// according to the sorting parent in O(n*d)
 bool fillMatFromParent(SPKDArray kdLeft, SPKDArray kdRight, SPKDArray kdParent,
 		int* leftIndexMap, int* rightIndexMap)
 {
@@ -184,11 +185,11 @@ bool fillMatFromParent(SPKDArray kdLeft, SPKDArray kdRight, SPKDArray kdParent,
 	int leftCurrRowPos = 0;
 	int rightCurrRowPos = 0;
 	int currIndex = MAP_NOT_EXIST;
-	//TODO: check if has to be spPCADim
 	int pointsDim = spPointGetDimension(kdParent->points[0]);
 
 	// Memory allocation of left kdArray index matrix
 	kdLeft->dimsSortedIndexesMat = (int**)malloc(kdLeft->size * sizeof(int*));
+
 	if (!kdLeft->dimsSortedIndexesMat)
 	{
 		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
@@ -230,7 +231,7 @@ bool fillMatFromParent(SPKDArray kdLeft, SPKDArray kdRight, SPKDArray kdParent,
 	// Iterating over each of the dimensions
 	for (i = 0; i < pointsDim; ++i)
 	{
-		// Foreach dimension iterating over the parent array sorted indexes for the dim
+		// For each dimension iterating over the parent array sorted indexes for the dim
 		for (j = 0; j < kdParent->size; ++j)
 		{
 			currIndex = kdParent->dimsSortedIndexesMat[j][i];
@@ -528,7 +529,6 @@ int spKDSArrayGetMaxSpreadDimension(SPKDArray kdArray)
 	}
 
 	// Iterating over each of the dimensions of the kdArray
-	// TODO: check if should be spPCADim
 	for (i = 0; i < spPointGetDimension(kdArray->points[0]); ++i)
 	{
 		// Getting the max coord value of the i'th axis and the min one, calculating the spread

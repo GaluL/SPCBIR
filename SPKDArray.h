@@ -17,7 +17,7 @@
 #include <assert.h>
 #include <math.h>
 
-
+#define MAP_NOT_EXIST -1
 #define INVALID_VALUE -1
 
 /** Type for defining the kdarray **/
