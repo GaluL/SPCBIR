@@ -37,16 +37,14 @@ int getSplitDimension(SPConfig config, SPKDArray kdArr, int upperLevelSplitDim)
 	splitMethod = spConfigGetspKDTreeSplitMethod(config, &configMsg);
 	if (configMsg != SP_CONFIG_SUCCESS)
 	{
-		// TODO: replace with config method which prints error according to enum
-		spLoggerPrintError(SP_ERROR_READING_CONFIG, __FILE__, __func__, __LINE__);
+		spConfigPrintConfigMsgToLogger(configMsg, __FILE__, __func__, __LINE__);
 		return SP_INVALID_NEG_VALUE;
 	}
 
 	pcaDim = spConfigGetPCADim(config, &configMsg);
 	if (configMsg != SP_CONFIG_SUCCESS)
 	{
-		// TODO: replace with config method which prints error according to enum
-		spLoggerPrintError(SP_ERROR_READING_CONFIG, __FILE__, __func__, __LINE__);
+		spConfigPrintConfigMsgToLogger(configMsg, __FILE__, __func__, __LINE__);
 		return SP_INVALID_NEG_VALUE;
 	}
 
@@ -364,7 +362,7 @@ SPKDTreeNode spCreateKDTreeFromImages(SPImage* imagesFeatures, SPConfig config)
 		}
 	}
 
-	// Create kdTree based on the feautres array we've just build
+	// Create kdTree based on the features array we've just build
 	kdTree = spKDTreeNodeCreate(allFeatures, numOfAllFeatures, config);
 
 	freeFeaturesArray(allFeatures, numOfAllFeatures);

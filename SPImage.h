@@ -6,14 +6,14 @@
  */
 #include <stdbool.h>
 #include "SPPoint.h"
-
+#include "SPCommonDefs.h"
 
 #ifndef SPIMAGE_H_
 #define SPIMAGE_H_
 
 #define FEATS_FILE_WRITE_MODE "wb"
 #define FEATS_FILE_READ_MODE "rb"
-#define NEW_LINE "\n"
+
 
 typedef struct sp_image_t *SPImage;
 
@@ -94,7 +94,7 @@ bool spImageSaveToFeats(SPImage image, const char* featsFileName);
 
 /**
  * Frees all memory resources associate with SPimage.
- * If SPImage == NULL nothig is done.
+ * If SPImage == NULL nothing is done.
  */
 void spImageDestroy(SPImage image);
 
