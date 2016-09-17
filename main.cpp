@@ -54,7 +54,7 @@ SPImage* extractImagesFeatures(const SPConfig config, sp::ImageProc* imgProc, in
 		spLoggerPrintError(SP_ALLOCATION_FAILURE, __FILE__, __func__, __LINE__);
 		return NULL;
 	}
-	// Iterating over the images extrcating the featears of each one of them
+	// Iterating over the images extracting the features of each one of them
 	for (i = 0; i < numOfImages; ++i)
 	{
 		spConfigGetImagePath(imagePath, config, i);
@@ -78,7 +78,7 @@ void destroyMainVariables(char* configFileName, SPConfig config, sp::ImageProc* 
 	{
 		delete imgProc;
 	}
-	// call the function to free aloocated memory.
+	// call the function to free allocated memory.
 	destroyVariables(configFileName, config, imagesFeatures, queryPath, featuresKDTree, query,
 		SimilarImagesPathes);
 }
@@ -121,7 +121,7 @@ int main(int argc, char** argv)
 		}
 
 		// Since c'tor of ImageProc throwing exceptions for failures like missing PCA file (etc.)
-		// The only way to deal with those failures is handling by c++ try & catch
+		// We will deal with those failures is handling by c++ try & catch
 		try
 		{
 			imgProc = new sp::ImageProc(config);
@@ -135,7 +135,7 @@ int main(int argc, char** argv)
 			return 0;
 		}
 
-		// get the num of images
+		// get the number of images
 		numOfImages = spConfigGetNumOfImages(config, &configMsg);
 		if (configMsg != SP_CONFIG_SUCCESS)
 		{
@@ -158,7 +158,7 @@ int main(int argc, char** argv)
 		// if extraction needed:
 		if (extractMode)
 		{
-			// craeting the images features data base
+			// creating the images features data base
 			imagesFeatures = extractImagesFeatures(config, imgProc, numOfImages);
 			if (!imagesFeatures)
 			{
@@ -210,7 +210,7 @@ int main(int argc, char** argv)
 	// asking the user for an image
 	flushed_printf(QUERY_IMAGE_PROMPT);
 	queryPath = flushed_gets();
-	// if something went worng print the error to terminate the program
+	// if something went wrong print the error to terminate the program
 	if (!queryPath)
 	{
 		flushed_printf_newline(SP_ALLOCATION_FAILURE);
@@ -219,13 +219,14 @@ int main(int argc, char** argv)
 
 		return 0;
 	}
-	// while the termination(<>) sign was nor given :
+	// while the termination sign(<>) was nor given :
 	while (strcmp(TERMINATION_SIGN, queryPath) != 0)
 	{
-		// getting the quary features and assign them to image structure
-		// Index 0 is given since it doesn't matter that it's not really image 0 because image features do not have to be distinguished from
-		// database (tree) other's images features since it's the query image (and by assignment 3 input conditions, negative index argument for points
-		// is forbidden.
+		// getting the query features and assign them to image structure
+		// Index 0 is given since it doesn't matter that it's not really image 0 because
+		// image features do not have to be distinguished from database (tree) other's images features
+		// since it's the query image (and by assignment 3 input conditions,
+		// negative index argument for points is forbidden.
 		query = extractImageFeatures(imgProc, queryPath, 0);
 		if (query)
 		{
@@ -238,7 +239,7 @@ int main(int argc, char** argv)
 
 				return 0;
 			}
-			// check for minimal gui mode for presenting the the results
+			// check minimal GUI mode for presenting the results
 			minimalGUI = spConfigMinimalGui(config,&configMsg);
 			if (configMsg != SP_CONFIG_SUCCESS)
 			{
@@ -247,7 +248,7 @@ int main(int argc, char** argv)
 
 				return 0;
 			}
-
+			// if true present the images
 			if (minimalGUI)
 			{
 				for (i = 0; i < spConfigGetNumOfSimilarImage(config, &configMsg) ; i++)
@@ -255,6 +256,7 @@ int main(int argc, char** argv)
 					imgProc->showImage(SimilarImagesPathes[i]);
 				}
 			}
+			// if false writing the most similar images paths
 			else
 			{
 				printf("%s %s %s", BEST_CANDIDATES, queryPath, ARE);
@@ -294,7 +296,7 @@ int main(int argc, char** argv)
 	}
 
 	flushed_printf(MSG_EXIT);
-
+	// free all allocated memory before terminating the program
 	destroyMainVariables(configFileName, config, imgProc, imagesFeatures, queryPath,
 			featuresKDTree, query, SimilarImagesPathes);
 

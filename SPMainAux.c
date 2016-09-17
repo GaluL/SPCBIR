@@ -439,7 +439,7 @@ bool initLoggerFromConfig(SPConfig config)
 	}
 
 	// Stores true if logger filename is "stdout" and else otherwise
-	isStdout = (strcmp(loggerFileName, LOGGER_FILE_NAME_DEFULT) == 0);
+	isStdout = (strcmp(loggerFileName, LOGGER_FILE_NAME_DEFAULT) == 0);
 
 	// Passing null if logger output is stdout (to make logger write to stdout)
 	// and logger filename otherwise

@@ -40,7 +40,7 @@ SPConfig spConfigInit(SP_CONFIG_MSG* msg)
 {
 	SPConfig config = NULL;
 	config = (SPConfig)malloc(sizeof(*config));
-	// the error will be printed from the calller.
+	// the error will be printed from the caller.
 	if (!config)
 	{
 		return NULL;
@@ -58,7 +58,7 @@ SPConfig spConfigInit(SP_CONFIG_MSG* msg)
 		config = NULL;
 		return NULL;
 	}
-	strcpy(config->spPCAFilename, PCA_FILE_NAME_DEFULT);
+	strcpy(config->spPCAFilename, PCA_FILE_NAME_DEFAULT);
 
 	config->spNumOfFeatures = NUM_OF_FEATURES_DEFULT;
 	config->spExtractionMode = true;
@@ -78,7 +78,7 @@ SPConfig spConfigInit(SP_CONFIG_MSG* msg)
 		return NULL;
 	}
 
-	strcpy(config->spLoggerFilename, LOGGER_FILE_NAME_DEFULT);
+	strcpy(config->spLoggerFilename, LOGGER_FILE_NAME_DEFAULT);
 	*msg = SP_CONFIG_SUCCESS;
 	return config;
 }
@@ -447,6 +447,7 @@ bool spAssignArgument(SPConfig config, char* variable_name, char* variable_value
 		return setspLoggerFilename(config, variable_value, msg);
 	}
 	// if we got here means the there is no such field in the config structure
+	// error will be printed to stdout
 	else
 	{
 		*msg = SP_CONFIG_INVALID_STRING;
@@ -465,7 +466,7 @@ char* trimWhitespace(char *str)
 		str++;
 	}
 
-	// if all whitespaces
+	// if all white spaces
 	if(*str == 0)
 	{
 		return str;
@@ -542,7 +543,7 @@ bool processAssignmentLine(SPConfig config, const char* line, const char* filena
 	equalMarkIndex = strchr(line, EQUAL_MARK);
 	if (!equalMarkIndex)
 	{
-		// DONT KNOW IF INVALID STRING IS THE RIGHT CHOISE
+
 		*configMsg = SP_CONFIG_INVALID_STRING;
 		spPrintInvalidLineError(filename, lineNumber);
 		return NULL;
@@ -605,7 +606,7 @@ bool processAssignmentLine(SPConfig config, const char* line, const char* filena
 
 	return true;
 }
-
+// creating the config file
 SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 {
 	int line_counter = 1;
@@ -625,7 +626,7 @@ SPConfig spConfigCreate(const char* filename, SP_CONFIG_MSG* msg)
 	file = fopen(filename, "r");
 	if (!file)
 	{
-		// check whether it is the deafaul file or user file
+		// check whether it is the default file or user file
 		if (strcmp(filename,DEFAULT_CONFIG_FILE) == 0)
 		{
 			flushed_printf(ERROR_SPCBIR_NOT_OPEN);

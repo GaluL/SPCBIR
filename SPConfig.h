@@ -25,8 +25,8 @@
 #define LOGGER_LEVEL_MAX 5
 #define LOGGER_LEVEL_MIN 0
 
-#define PCA_FILE_NAME_DEFULT "pca.yml"
-#define LOGGER_FILE_NAME_DEFULT "stdout"
+#define PCA_FILE_NAME_DEFAULT "pca.yml"
+#define LOGGER_FILE_NAME_DEFAULT "stdout"
 #define COMMENT_MARK '#'
 #define EQUAL_MARK '='
 #define NULL_TERMINATE '\0'
