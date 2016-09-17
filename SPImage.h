@@ -38,6 +38,7 @@ SPImage spImageCreateFromImg(SPPoint* feats, int featsCount);
  *
  * @param featsFileName - the file holding the features to read from
  * @param imgIndex - int represent the image index
+ * @param pcaDimension - int representing the requested pca dimension from config
  *
  * @return
  * SPImage structure with his fields assigned
@@ -46,7 +47,7 @@ SPImage spImageCreateFromImg(SPPoint* feats, int featsCount);
  * - print to logger file if some error occurred
  *
  */
-SPImage spImageCreateFromFeats(const char* featsFileName, int imgIndex);
+SPImage spImageCreateFromFeats(const char* featsFileName, int imgIndex, int pcaDimension);
 
 /**
  * return the num of features in an image

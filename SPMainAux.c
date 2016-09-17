@@ -116,6 +116,7 @@ bool spDeserializeImagesFeatures(SPImage** imagesFeatures, SPConfig config)
 {
 	int i = 0;
 	int numOfImages = 0;
+	int pcaDimension = 0;
 	SP_CONFIG_MSG configMsg;
 	// allocating memory for image path
 	char* imageFeatsPath = (char*)malloc((MAX_FILE_PATH_LEN + 1) * sizeof(char));
@@ -142,10 +143,20 @@ bool spDeserializeImagesFeatures(SPImage** imagesFeatures, SPConfig config)
 		imageFeatsPath = NULL;
 		return false;
 	}
+
+	pcaDimension = spConfigGetPCADim(config, &configMsg);
+	if (configMsg != SP_CONFIG_SUCCESS)
+	{
+		spConfigPrintConfigMsgToLogger(configMsg, __FILE__, __func__, __LINE__);
+		free(imageFeatsPath);
+		imageFeatsPath = NULL;
+		return false;
+	}
+
 	// for each image assign to image structure from the features in the file
 	for (i = 0; i < numOfImages; ++i)
 	{
-		 configMsg = spConfigGetImageFeatsPath(imageFeatsPath, config, i);
+		configMsg = spConfigGetImageFeatsPath(imageFeatsPath, config, i);
 		if (configMsg != SP_CONFIG_SUCCESS)
 		{
 			spConfigPrintConfigMsgToLogger(configMsg,__FILE__,__func__, __LINE__);
@@ -154,7 +165,7 @@ bool spDeserializeImagesFeatures(SPImage** imagesFeatures, SPConfig config)
 			return false;
 		}
 		 // for each image assign to image structure from the features in the file
-		 (*imagesFeatures)[i] = spImageCreateFromFeats(imageFeatsPath, i);
+		 (*imagesFeatures)[i] = spImageCreateFromFeats(imageFeatsPath, i, pcaDimension);
 		 if (!(*imagesFeatures)[i])
 		 {
 			// if a problem occurred freeing all allocated memory

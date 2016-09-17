@@ -223,7 +223,10 @@ int main(int argc, char** argv)
 	while (strcmp(TERMINATION_SIGN, queryPath) != 0)
 	{
 		// getting the quary features and assign them to image structure
-		query = extractImageFeatures(imgProc, queryPath, 666);
+		// Index 0 is given since it doesn't matter that it's not really image 0 because image features do not have to be distinguished from
+		// database (tree) other's images features since it's the query image (and by assignment 3 input conditions, negative index argument for points
+		// is forbidden.
+		query = extractImageFeatures(imgProc, queryPath, 0);
 		if (query)
 		{
 			// find the most similar images paths from the database received before

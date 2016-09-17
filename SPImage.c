@@ -36,7 +36,7 @@ SPImage spImageCreateFromImg(SPPoint* feats, int featsCount)
 	return result;
 }
 
-SPImage spImageCreateFromFeats(const char* featsFileName, int imgIndex)
+SPImage spImageCreateFromFeats(const char* featsFileName, int imgIndex, int pcaDimension)
 {
 	FILE *fp;
 	SPImage res = NULL;
@@ -67,6 +67,7 @@ SPImage spImageCreateFromFeats(const char* featsFileName, int imgIndex)
 		fclose(fp);
 		return NULL;
 	}
+
 	// Allocate the the features array
 	res->feats = (SPPoint*)malloc(res->featsCount * sizeof(SPPoint));
 	if (!res->feats)
@@ -76,12 +77,28 @@ SPImage spImageCreateFromFeats(const char* featsFileName, int imgIndex)
 		fclose(fp);
 		return NULL;
 	}
+
+	// Inits feats array to NULLs
+	for (i = 0; i < res->featsCount; ++i)
+	{
+		res->feats[i] = NULL;
+	}
+
 	// for each feature read the value of the dimension
 	for (i = 0; i < res->featsCount; ++i)
 	{
 		if (!fscanf(fp, "%d", &currPointDim))
 		{
 			spLoggerPrintError(SP_FAILED_READ_FROM_FILE, __FILE__, __func__, __LINE__);
+			spImageDestroy(res);
+			fclose(fp);
+			return NULL;
+		}
+
+		// Check if number of feats stored in feats file corresponds with currently requested pcaDimension
+		if (currPointDim != pcaDimension)
+		{
+			spLoggerPrintError(SP_FEATS_WRONG_PCA, __FILE__, __func__, __LINE__);
 			spImageDestroy(res);
 			fclose(fp);
 			return NULL;
