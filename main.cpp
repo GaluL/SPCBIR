@@ -224,56 +224,59 @@ int main(int argc, char** argv)
 	{
 		// getting the quary features and assign them to image structure
 		query = extractImageFeatures(imgProc, queryPath, 666);
-		if (!query)
+		if (query)
 		{
-			destroyMainVariables(configFileName, config, imgProc, imagesFeatures, queryPath,
-					featuresKDTree, query, SimilarImagesPathes);
-
-			return 0;
-		}
-		// find the most similar images paths from the database received before
-		SimilarImagesPathes = spGetSimilarImagesPathes(config, query, featuresKDTree);
-		if (!SimilarImagesPathes)
-		{
-			destroyMainVariables(configFileName, config, imgProc, imagesFeatures, queryPath,
-					featuresKDTree, query, SimilarImagesPathes);
-
-			return 0;
-		}
-		// check for minimal gui mode for presenting the the results
-		minimalGUI = spConfigMinimalGui(config,&configMsg);
-		if (configMsg != SP_CONFIG_SUCCESS)
-		{
-			destroyMainVariables(configFileName, config, imgProc, imagesFeatures, queryPath,
-					featuresKDTree, query, SimilarImagesPathes);
-
-			return 0;
-		}
-
-		if (minimalGUI)
-		{
-			for (i = 0; i < spConfigGetNumOfSimilarImage(config, &configMsg) ; i++)
+			// find the most similar images paths from the database received before
+			SimilarImagesPathes = spGetSimilarImagesPathes(config, query, featuresKDTree);
+			if (!SimilarImagesPathes)
 			{
-				imgProc->showImage(SimilarImagesPathes[i]);
+				destroyMainVariables(configFileName, config, imgProc, imagesFeatures, queryPath,
+						featuresKDTree, query, SimilarImagesPathes);
+
+				return 0;
 			}
+			// check for minimal gui mode for presenting the the results
+			minimalGUI = spConfigMinimalGui(config,&configMsg);
+			if (configMsg != SP_CONFIG_SUCCESS)
+			{
+				destroyMainVariables(configFileName, config, imgProc, imagesFeatures, queryPath,
+						featuresKDTree, query, SimilarImagesPathes);
+
+				return 0;
+			}
+
+			if (minimalGUI)
+			{
+				for (i = 0; i < spConfigGetNumOfSimilarImage(config, &configMsg) ; i++)
+				{
+					imgProc->showImage(SimilarImagesPathes[i]);
+				}
+			}
+			else
+			{
+				printf("%s %s %s", BEST_CANDIDATES, queryPath, ARE);
+				fflush(NULL);
+
+				for (i = 0; i < spConfigGetNumOfSimilarImage(config, &configMsg) ; i++)
+				{
+					flushed_printf_newline(SimilarImagesPathes[i]);
+				}
+			}
+			// clean allocated memory and getting ready for the next image from user
+			spImageDestroy(query);
+			query = NULL;
+			freeSimilarImagesPathes(SimilarImagesPathes, config);
+			SimilarImagesPathes = NULL;
 		}
 		else
 		{
-			printf("%s %s %s", BEST_CANDIDATES, queryPath, ARE);
-			fflush(NULL);
-
-			for (i = 0; i < spConfigGetNumOfSimilarImage(config, &configMsg) ; i++)
-			{
-				flushed_printf_newline(SimilarImagesPathes[i]);
-			}
+			spLoggerPrintWarning(ERROR_QUERY_LOAD_FAILURE, __FILE__, __func__, __LINE__);
+			flushed_printf(ERROR_QUERY_LOAD_FAILURE);
 		}
-		// clean allocated memory and getting ready for the next image from user
+
 		free(queryPath);
 		queryPath = NULL;
-		spImageDestroy(query);
-		query = NULL;
-		freeSimilarImagesPathes(SimilarImagesPathes, config);
-		SimilarImagesPathes = NULL;
+
 		// ask for the next image from user
 		flushed_printf(QUERY_IMAGE_PROMPT);
 		queryPath = flushed_gets();

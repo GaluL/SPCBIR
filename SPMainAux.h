@@ -17,13 +17,14 @@
 #define ERROR_INVALID_COMAND_LINE "Invalid command line : use -c "
 #define ERROR_SPCBIR_NOT_OPEN "The default configuration file spcbir.config couldn't be open\n"
 #define ERROR_FEATURES_EXTRACT_FAILURE "Could not extract features for one or more images"
+#define ERROR_QUERY_LOAD_FAILURE "Could not load query image, try again...\n"
 #define MSG_EXIT "Exiting...\n"
 #define CONFIG_ARGUMENT_FLAG "-c"
 #define DEFAULT_CONFIG_FILE "spcbir.config"
 #define QUERY_IMAGE_PROMPT "Please enter query image path\n"
 #define TERMINATION_SIGN "<>"
 #define BEST_CANDIDATES "Best candidates for -"
-#define ARE " are:\n"
+#define ARE "- are:\n"
 #define INVALID_COMAND_LINE "Invalid command line"
 
 #define MAX_INPUT_LENGTH 1024
